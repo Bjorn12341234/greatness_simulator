@@ -183,8 +183,9 @@ export const useGameStore = create<GameStore>()((set, get) => ({
 
     const newTotalPlayTime = state.totalPlayTime + dt
 
-    // Cash from cashPerSecond effects
+    // Cash and Attention from per-second effects
     let cashPerSec = 0
+    let attentionPerSec = 0
     for (const [id, upgrade] of Object.entries(state.upgrades)) {
       if (upgrade.purchased && upgrade.count > 0) {
         const data = getUpgradeData(id)
@@ -192,6 +193,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
           for (const effect of data.effects) {
             if (effect.type === 'cashPerSecond') {
               cashPerSec += effect.value * upgrade.count
+            } else if (effect.type === 'attentionPerSecond') {
+              attentionPerSec += effect.value * upgrade.count
             }
           }
         }
@@ -237,6 +240,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     const updates: Partial<GameState> = {
       greatness: state.greatness + computedGPS * dt,
       greatnessPerSecond: computedGPS,
+      attention: state.attention + attentionPerSec * dt,
       cash: state.cash + (cashPerSec * cashMult + tariffCash) * dt,
       legitimacy: newLegitimacy,
       totalPlayTime: newTotalPlayTime,

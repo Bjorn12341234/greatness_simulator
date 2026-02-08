@@ -286,7 +286,7 @@ export interface UpgradeData {
 }
 
 export interface UpgradeEffect {
-  type: 'attentionPerClick' | 'cashPerSecond' | 'gpsMultiplier'
+  type: 'attentionPerClick' | 'attentionPerSecond' | 'cashPerSecond' | 'gpsMultiplier'
   value: number
 }
 

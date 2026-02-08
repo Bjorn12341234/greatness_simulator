@@ -69,7 +69,10 @@ export function UpgradeCard({ data, state, canAfford, onPurchase }: UpgradeCardP
 
       <div className="flex items-start gap-3">
         {/* Icon */}
-        <span className="text-2xl flex-shrink-0 mt-0.5">{data.icon}</span>
+        <span
+          className="text-2xl flex-shrink-0 mt-0.5"
+          style={data.icon === '🧢' ? { filter: 'hue-rotate(180deg) saturate(3) brightness(0.9)' } : undefined}
+        >{data.icon}</span>
 
         <div className="flex-1 min-w-0">
           {/* Name + count */}

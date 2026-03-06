@@ -140,6 +140,74 @@ final class GameState: Codable {
         attention += attentionPerClick
     }
 
+    func purchaseUpgrade(id: String) -> Bool {
+        guard let data = upgradeRegistry[id] else { return false }
+
+        let state = upgrades[id] ?? UpgradeState()
+        guard state.count < data.maxCount else { return false }
+
+        let cost = GameEngine.upgradeCost(data: data, currentCount: state.count)
+
+        // Check affordability
+        switch data.costResource {
+        case .attention:
+            guard attention >= cost else { return false }
+            attention -= cost
+        case .cash:
+            guard cash >= cost else { return false }
+            cash -= cost
+        case .greatness:
+            guard greatness >= cost else { return false }
+            greatness -= cost
+        }
+
+        // Update upgrade state
+        var newState = state
+        newState.count += 1
+        newState.purchased = true
+        newState.unlocked = true
+        upgrades[id] = newState
+
+        // Apply immediate effects (attentionPerClick)
+        attentionPerClick = GameEngine.calculateAttentionPerClick(state: self)
+
+        return true
+    }
+
+    /// Check which upgrades should be visible based on prerequisites and unlock conditions
+    func isUpgradeVisible(_ data: UpgradeData) -> Bool {
+        // Check prerequisite upgrades are purchased
+        for prereq in data.prerequisites {
+            guard let state = upgrades[prereq], state.purchased else { return false }
+        }
+
+        // Check unlock conditions
+        if let condition = data.unlockAt {
+            let value: Double
+            switch condition.resource {
+            case "attention": value = attention
+            case "cash": value = cash
+            case "greatness": value = greatness
+            case "clickCount": value = Double(clickCount)
+            default: value = 0
+            }
+            if value < condition.threshold { return false }
+        }
+
+        return true
+    }
+
+    func isUpgradeAffordable(_ data: UpgradeData) -> Bool {
+        let state = upgrades[data.id] ?? UpgradeState()
+        guard state.count < data.maxCount else { return false }
+        let cost = GameEngine.upgradeCost(data: data, currentCount: state.count)
+        switch data.costResource {
+        case .attention: return attention >= cost
+        case .cash: return cash >= cost
+        case .greatness: return greatness >= cost
+        }
+    }
+
     required init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         phase = try c.decode(Phase.self, forKey: .phase)

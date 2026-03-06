@@ -34,9 +34,7 @@ struct MainView: View {
                 case .click:
                     ClickerView()
                 case .upgrades:
-                    Text("Sprint 3: Upgrades")
-                        .foregroundStyle(.secondary)
-                        .frame(maxHeight: .infinity)
+                    UpgradeListView()
                 case .stats:
                     Text("Coming soon")
                         .foregroundStyle(.secondary)

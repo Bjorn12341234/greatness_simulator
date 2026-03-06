@@ -73,13 +73,13 @@ The browser game (React/Vite) must NOT be modified — it stays as-is for laptop
 
 ### Sprint 3: Game Loop + Phase 1 Upgrades
 **Goal:** Auto-generation ticking, upgrades purchasable, GpS flowing.
-- [ ] Timer-based game loop calling `tick()` every 100ms
-- [ ] Greatness-per-second calculation from upgrades
-- [ ] Cash and attention auto-generation
-- [ ] Port Phase 1 upgrade data (all upgrades from `phase1/upgrades.ts`)
-- [ ] `UpgradeListView` — scrollable list, purchase buttons, cost display
-- [ ] Upgrade prerequisites and unlock conditions
-- [ ] Purchase logic (deduct cost, apply effects)
+- [x] Timer-based game loop calling `tick()` every 100ms
+- [x] Greatness-per-second calculation from upgrades
+- [x] Cash and attention auto-generation
+- [x] Port Phase 1 upgrade data (all upgrades from `phase1/upgrades.ts`)
+- [x] `UpgradeListView` — scrollable list, purchase buttons, cost display
+- [x] Upgrade prerequisites and unlock conditions
+- [x] Purchase logic (deduct cost, apply effects)
 
 ### Sprint 4: Events System + Phase Transitions
 **Goal:** Random events fire, player makes choices. Phase 1 -> 2 transition works.
@@ -179,7 +179,7 @@ The browser game (React/Vite) must NOT be modified — it stays as-is for laptop
 |--------|--------|------|-------|
 | 1 | DONE | 2026-03-06 | Xcode project, Types, GameState, GameEngine stub, MainView, Formatting, builds on simulator |
 | 2 | DONE | 2026-03-06 | ClickerView with tap button, haptics, floating +N text, tab navigation, resource bar animations, click() action |
-| 3 | Not started | — | — |
+| 3 | DONE | 2026-03-06 | Game loop timer (100ms tick), GpS/AttPS/CashPS calculations, 35 Phase 1 upgrades across 7 trees ported, UpgradeListView with purchase UI, cost scaling (1.15^n), prerequisite/unlock conditions, attentionPerClick recalc on purchase, 0 warnings |
 | 4 | Not started | — | — |
 | 5 | Not started | — | — |
 | 6 | Not started | — | — |

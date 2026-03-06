@@ -26,6 +26,39 @@ struct GameEngine {
         state.greatness += gps * dt
         state.attention += attPerSec * dt
         state.cash += cashPerSec * dt
+
+        // Event scheduling — seed first event if needed
+        if state.nextEventAt == 0 {
+            state.nextEventAt = EventEngine.scheduleNext(phase: state.phase.rawValue, now: now)
+        }
+
+        // Event trigger
+        if EventEngine.shouldTrigger(state: state, now: now) {
+            if let event = EventEngine.selectEvent(state: state, pool: allEvents(for: state.phase)) {
+                state.activeEvent = event
+            } else {
+                // No eligible events — reschedule
+                state.nextEventAt = EventEngine.scheduleNext(phase: state.phase.rawValue, now: now)
+            }
+        }
+
+        // Phase transition check (only when no pending transition and no active event)
+        if state.pendingTransitionFrom == nil && state.activeEvent == nil {
+            if let nextPhase = state.checkPhaseTransition() {
+                state.pendingTransitionFrom = state.phase
+                state.pendingTransitionTo = nextPhase
+            }
+        }
+    }
+
+    // MARK: - Event Pool
+
+    static func allEvents(for phase: Phase) -> [GameEvent] {
+        switch phase {
+        case .personalBrand: return phase1Events
+        // Future phases will add their event pools here
+        default: return phase1Events
+        }
     }
 
     // MARK: - GpS Calculation

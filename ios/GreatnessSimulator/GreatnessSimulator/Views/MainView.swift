@@ -21,34 +21,50 @@ struct MainView: View {
     @State private var selectedTab: GameTab = .click
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Phase header
-            phaseHeader
+        ZStack {
+            VStack(spacing: 0) {
+                // Phase header
+                phaseHeader
 
-            // Resource bar
-            resourceBar
+                // Resource bar
+                resourceBar
 
-            // Main content
-            Group {
-                switch selectedTab {
-                case .click:
-                    ClickerView()
-                case .upgrades:
-                    UpgradeListView()
-                case .stats:
-                    Text("Coming soon")
-                        .foregroundStyle(.secondary)
-                        .frame(maxHeight: .infinity)
-                case .settings:
-                    Text("Coming soon")
-                        .foregroundStyle(.secondary)
-                        .frame(maxHeight: .infinity)
+                // Main content
+                Group {
+                    switch selectedTab {
+                    case .click:
+                        ClickerView()
+                    case .upgrades:
+                        UpgradeListView()
+                    case .stats:
+                        Text("Coming soon")
+                            .foregroundStyle(.secondary)
+                            .frame(maxHeight: .infinity)
+                    case .settings:
+                        Text("Coming soon")
+                            .foregroundStyle(.secondary)
+                            .frame(maxHeight: .infinity)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                // Tab bar
+                tabBar
+            }
+
+            // Event modal overlay
+            if let event = game.activeEvent {
+                EventModalView(event: event) {
+                    // onDismiss — event already resolved in resolveEvent
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Tab bar
-            tabBar
+            // Phase transition overlay
+            if let from = game.pendingTransitionFrom, let to = game.pendingTransitionTo {
+                PhaseTransitionView(fromPhase: from, toPhase: to) {
+                    game.completePhaseTransition(to: to)
+                }
+            }
         }
         .background(Color.black)
     }

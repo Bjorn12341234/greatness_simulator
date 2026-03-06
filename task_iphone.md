@@ -83,13 +83,13 @@ The browser game (React/Vite) must NOT be modified — it stays as-is for laptop
 
 ### Sprint 4: Events System + Phase Transitions
 **Goal:** Random events fire, player makes choices. Phase 1 -> 2 transition works.
-- [ ] Port event engine — random event selection, cooldowns, conditions
-- [ ] Port Phase 1 event data
-- [ ] `EventModalView` — headline, context, choice buttons with effect preview
-- [ ] Apply event effects to game state
-- [ ] Phase transition detection (Neural Backup -> Phase 2)
-- [ ] `PhaseTransitionView` — cinematic text sequence
-- [ ] Phase number visible in UI
+- [x] Port event engine — random event selection, cooldowns, conditions
+- [x] Port Phase 1 event data
+- [x] `EventModalView` — headline, context, choice buttons with effect preview
+- [x] Apply event effects to game state
+- [x] Phase transition detection (Neural Backup -> Phase 2)
+- [x] `PhaseTransitionView` — cinematic text sequence
+- [x] Phase number visible in UI
 
 ### Sprint 5: Phase 2 — Institutions + Budget
 **Goal:** Phase 2 gameplay loop functional.
@@ -180,7 +180,7 @@ The browser game (React/Vite) must NOT be modified — it stays as-is for laptop
 | 1 | DONE | 2026-03-06 | Xcode project, Types, GameState, GameEngine stub, MainView, Formatting, builds on simulator |
 | 2 | DONE | 2026-03-06 | ClickerView with tap button, haptics, floating +N text, tab navigation, resource bar animations, click() action |
 | 3 | DONE | 2026-03-06 | Game loop timer (100ms tick), GpS/AttPS/CashPS calculations, 35 Phase 1 upgrades across 7 trees ported, UpgradeListView with purchase UI, cost scaling (1.15^n), prerequisite/unlock conditions, attentionPerClick recalc on purchase, 0 warnings |
-| 4 | Not started | — | — |
+| 4 | DONE | 2026-03-06 | EventEngine with weighted random selection, conditions, unique flags. 33 Phase 1 events ported (8 scandal, 11 opportunity, 10 absurd, 7 contradiction, 6 crisis). EventModalView with category badges, choice buttons, effect previews. Phase transition detection (Neural Backup -> Phase 2). PhaseTransitionView with timed cinematic text. Transition scripts for all 4 phase transitions. applyEffect/resolveEvent/completePhaseTransition actions. Events fire every 120-180s in Phase 1. 0 warnings. |
 | 5 | Not started | — | — |
 | 6 | Not started | — | — |
 | 7 | Not started | — | — |

@@ -197,6 +197,81 @@ final class GameState: Codable {
         return true
     }
 
+    // MARK: - Event Actions
+
+    func resolveEvent(choice: EventChoice) {
+        for effect in choice.effects {
+            applyEffect(effect)
+        }
+        if let event = activeEvent {
+            eventHistory.append(event.id)
+        }
+        activeEvent = nil
+        // Schedule next event
+        nextEventAt = EventEngine.scheduleNext(phase: phase.rawValue, now: Date().timeIntervalSince1970)
+    }
+
+    func dismissEvent() {
+        if let event = activeEvent {
+            eventHistory.append(event.id)
+        }
+        activeEvent = nil
+        nextEventAt = EventEngine.scheduleNext(phase: phase.rawValue, now: Date().timeIntervalSince1970)
+    }
+
+    func applyEffect(_ effect: Effect) {
+        let amount = effect.amount
+        switch effect.resource {
+        case "attention": attention += amount
+        case "cash": cash += amount
+        case "greatness": greatness += amount
+        case "influence": influence += amount
+        case "legitimacy": legitimacy = max(0, min(100, legitimacy + amount))
+        case "fear": fear += amount
+        case "nobelScore": nobelScore += amount
+        case "loyalty": loyalty += amount
+        case "control": control += amount
+        case "surveillance": surveillance += amount
+        default: break
+        }
+    }
+
+    // MARK: - Phase Transition
+
+    func checkPhaseTransition() -> Phase? {
+        switch phase {
+        case .personalBrand:
+            if upgrades["sci_neural_backup"]?.purchased == true { return .institutionalCapture }
+        case .institutionalCapture:
+            let insts = institutions.values
+            if insts.count >= 13 && insts.allSatisfy({ $0.status == .captured || $0.status == .automated }) {
+                return .worldGreatening
+            }
+        case .worldGreatening:
+            let ctrs = countries.values
+            if ctrs.count >= 14 && ctrs.allSatisfy({ $0.status == .annexed || $0.status == .allied }) {
+                return .spaceGreatening
+            }
+        case .spaceGreatening:
+            if space.dysonSwarms > 0 && space.asteroidRigs >= 5 && orbitalIndustry >= 100 {
+                return .cosmicGreatening
+            }
+        case .cosmicGreatening:
+            break // Endgame, no auto-transition
+        }
+        return nil
+    }
+
+    func completePhaseTransition(to newPhase: Phase) {
+        phase = newPhase
+        pendingTransitionFrom = nil
+        pendingTransitionTo = nil
+        // Schedule first event for the new phase
+        nextEventAt = EventEngine.scheduleNext(phase: newPhase.rawValue, now: Date().timeIntervalSince1970)
+    }
+
+    // MARK: - Upgrade Helpers
+
     func isUpgradeAffordable(_ data: UpgradeData) -> Bool {
         let state = upgrades[data.id] ?? UpgradeState()
         guard state.count < data.maxCount else { return false }

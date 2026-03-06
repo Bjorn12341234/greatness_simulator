@@ -3,6 +3,7 @@ import SwiftUI
 enum GameTab: String, CaseIterable {
     case click = "Click"
     case upgrades = "Upgrades"
+    case control = "Control"
     case stats = "Stats"
     case settings = "Settings"
 
@@ -10,8 +11,17 @@ enum GameTab: String, CaseIterable {
         switch self {
         case .click: return "hand.tap.fill"
         case .upgrades: return "arrow.up.square.fill"
+        case .control: return "building.columns.fill"
         case .stats: return "chart.bar.fill"
         case .settings: return "gearshape.fill"
+        }
+    }
+
+    var minPhase: Int {
+        switch self {
+        case .click, .upgrades: return 1
+        case .control: return 2
+        case .stats, .settings: return 1
         }
     }
 }
@@ -36,6 +46,8 @@ struct MainView: View {
                         ClickerView()
                     case .upgrades:
                         UpgradeListView()
+                    case .control:
+                        ControlDashboardView()
                     case .stats:
                         Text("Coming soon")
                             .foregroundStyle(.secondary)
@@ -97,10 +109,19 @@ struct MainView: View {
     // MARK: - Resource Bar
 
     private var resourceBar: some View {
-        HStack(spacing: 16) {
-            resourcePill(icon: "star.fill", label: "Greatness", value: game.greatness, color: .yellow)
-            resourcePill(icon: "dollarsign.circle.fill", label: "Cash", value: game.cash, color: .green)
-            resourcePill(icon: "eye.fill", label: "Attention", value: game.attention, color: .cyan)
+        VStack(spacing: 6) {
+            HStack(spacing: 16) {
+                resourcePill(icon: "star.fill", label: "Greatness", value: game.greatness, color: .yellow)
+                resourcePill(icon: "dollarsign.circle.fill", label: "Cash", value: game.cash, color: .green)
+                resourcePill(icon: "eye.fill", label: "Attention", value: game.attention, color: .cyan)
+            }
+            if game.phase.rawValue >= 2 {
+                HStack(spacing: 16) {
+                    resourcePill(icon: "heart.fill", label: "Loyalty", value: game.loyalty, color: .purple)
+                    resourcePill(icon: "shield.fill", label: "Legitimacy", value: game.legitimacy, color: game.legitimacy > 50 ? .green : .red)
+                    resourcePill(icon: "eye.trianglebadge.exclamationmark.fill", label: "Control", value: game.control, color: .orange)
+                }
+            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
@@ -129,9 +150,13 @@ struct MainView: View {
 
     // MARK: - Tab Bar
 
+    private var visibleTabs: [GameTab] {
+        GameTab.allCases.filter { $0.minPhase <= game.phase.rawValue }
+    }
+
     private var tabBar: some View {
         HStack {
-            ForEach(GameTab.allCases, id: \.self) { tab in
+            ForEach(visibleTabs, id: \.self) { tab in
                 Button {
                     selectedTab = tab
                     Haptics.light()

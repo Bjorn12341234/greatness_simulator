@@ -236,6 +236,74 @@ final class GameState: Codable {
         }
     }
 
+    // MARK: - Institution Actions
+
+    func startInstitutionAction(institutionId: String, actionType: String) {
+        guard let actionDef = actionRegistry[actionType] else { return }
+        guard cash >= actionDef.costCash, loyalty >= actionDef.costLoyalty else { return }
+
+        cash -= actionDef.costCash
+        loyalty -= actionDef.costLoyalty
+        legitimacy = max(0, min(100, legitimacy + actionDef.legitimacyImpact))
+
+        var inst = institutions[institutionId] ?? InstitutionState()
+
+        // Map action type to status for in-progress tracking
+        switch actionType {
+        case "co-opt": inst.status = .coOpting
+        case "replace": inst.status = .replacing
+        case "purge": inst.status = .purging
+        case "rebrand": inst.rebranded = true
+        case "automate": inst.status = .automated
+        case "privatize":
+            cash += 50000 // privatize earns cash
+            return
+        case "loyalty_test":
+            inst.resistance = max(0, inst.resistance - actionDef.resistanceReduction)
+            if inst.resistance <= 0 { inst.status = .captured }
+            institutions[institutionId] = inst
+            return
+        default: break
+        }
+
+        inst.actionStartedAt = Date().timeIntervalSince1970
+        inst.progress = 0
+        institutions[institutionId] = inst
+    }
+
+    // MARK: - Tariff Actions
+
+    func setTariffLevel(tariffId: String, level: Int) {
+        var state = tariffs[tariffId] ?? TariffState()
+        state.level = max(0, min(3, level))
+        state.active = level > 0
+        tariffs[tariffId] = state
+    }
+
+    // MARK: - Data Center Actions
+
+    func purchaseDataCenter(id: String) {
+        guard let def = dataCenterRegistry[id] else { return }
+        guard dataCenterUpgrades[id] != true else { return }
+        if let prereq = def.prerequisite {
+            guard dataCenterUpgrades[prereq] == true else { return }
+        }
+        guard cash >= def.cost else { return }
+        cash -= def.cost
+        dataCenterUpgrades[id] = true
+    }
+
+    // MARK: - Loyalty Upgrade Actions
+
+    func purchaseLoyaltyUpgrade(id: String) {
+        guard let def = loyaltyUpgradeRegistry[id] else { return }
+        guard loyaltyUpgrades[id] != true else { return }
+        guard loyalty >= def.costLoyalty, cash >= def.costCash else { return }
+        loyalty -= def.costLoyalty
+        cash -= def.costCash
+        loyaltyUpgrades[id] = true
+    }
+
     // MARK: - Phase Transition
 
     func checkPhaseTransition() -> Phase? {
@@ -268,6 +336,17 @@ final class GameState: Codable {
         pendingTransitionTo = nil
         // Schedule first event for the new phase
         nextEventAt = EventEngine.scheduleNext(phase: newPhase.rawValue, now: Date().timeIntervalSince1970)
+
+        // Phase-specific initialization
+        if newPhase == .institutionalCapture {
+            // Initialize all 13 institutions
+            for def in institutionDefs {
+                self.institutions[def.id] = InstitutionState(
+                    status: .independent,
+                    resistance: def.resistance
+                )
+            }
+        }
     }
 
     // MARK: - Upgrade Helpers

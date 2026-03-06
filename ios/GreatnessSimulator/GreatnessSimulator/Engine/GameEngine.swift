@@ -27,6 +27,14 @@ struct GameEngine {
         state.attention += attPerSec * dt
         state.cash += cashPerSec * dt
 
+        // Phase 2+ systems
+        if state.phase.rawValue >= 2 {
+            tickInstitutions(state: state, now: now)
+            tickTariffs(state: state, dt: dt)
+            tickLegitimacy(state: state, dt: dt)
+            tickLoyaltyGeneration(state: state, dt: dt)
+        }
+
         // Event scheduling — seed first event if needed
         if state.nextEventAt == 0 {
             state.nextEventAt = EventEngine.scheduleNext(phase: state.phase.rawValue, now: now)
@@ -56,9 +64,98 @@ struct GameEngine {
     static func allEvents(for phase: Phase) -> [GameEvent] {
         switch phase {
         case .personalBrand: return phase1Events
-        // Future phases will add their event pools here
+        case .institutionalCapture: return phase2Events
+        case .worldGreatening: return phase3Events
         default: return phase1Events
         }
+    }
+
+    // MARK: - Institution Tick
+
+    static func tickInstitutions(state: GameState, now: Double) {
+        for (id, var inst) in state.institutions {
+            guard let actionStarted = inst.actionStartedAt else { continue }
+            let actionType = inst.status.rawValue
+            guard let actionDef = actionRegistry[actionType] else { continue }
+
+            let elapsed = now - actionStarted
+            inst.progress = min(1.0, elapsed / actionDef.duration)
+
+            if elapsed >= actionDef.duration {
+                // Action complete
+                inst.resistance = max(0, inst.resistance - actionDef.resistanceReduction)
+                inst.actionStartedAt = nil
+                inst.progress = 0
+
+                if inst.resistance <= 0 {
+                    inst.status = .captured
+                } else {
+                    inst.status = .independent
+                }
+            }
+
+            state.institutions[id] = inst
+        }
+
+        // GpS from captured institutions
+        // (handled in calculateGPS)
+    }
+
+    // MARK: - Tariff Tick
+
+    static func tickTariffs(state: GameState, dt: Double) {
+        for def in tariffDefs {
+            let level = state.tariffs[def.id]?.level ?? 0
+            guard level > 0 else { continue }
+
+            // Cash per minute -> per second
+            state.cash += (def.cashPerMinute[level] / 60.0) * dt
+
+            // Legitimacy drain per second
+            state.legitimacy = max(0, min(100, state.legitimacy + def.legitimacyDrain[level] * dt))
+        }
+    }
+
+    // MARK: - Legitimacy Tick
+
+    static func tickLegitimacy(state: GameState, dt: Double) {
+        let budget = state.budget
+
+        // Base decay
+        var decay: Double = 0.001
+
+        // Decay from captured institutions
+        let capturedCount = state.institutions.values.filter { $0.status == .captured || $0.status == .automated }.count
+        decay += Double(capturedCount) * 0.0002
+
+        // Recovery from budget
+        let healthRecovery = budget.healthcare * 0.003
+        let socialRecovery = budget.socialBenefits * 0.002
+        let propRecovery = budget.propagandaBureau * 0.004
+        let recovery = (healthRecovery + socialRecovery + propRecovery) / 100.0 // normalize from percentage
+
+        let netChange = (recovery - decay) * dt
+        state.legitimacy = max(0, min(100, state.legitimacy + netChange))
+    }
+
+    // MARK: - Loyalty Generation Tick
+
+    static func tickLoyaltyGeneration(state: GameState, dt: Double) {
+        var loyaltyPerSec: Double = 0
+
+        // Loyalty from captured institutions
+        for (id, inst) in state.institutions {
+            guard inst.status == .captured || inst.status == .automated else { continue }
+            guard let def = institutionRegistry[id] else { continue }
+            loyaltyPerSec += def.loyaltyGeneration
+        }
+
+        // Loyalty from loyalty upgrades
+        if state.loyaltyUpgrades["loyalty_pledges"] == true { loyaltyPerSec += 0.5 }
+        if state.loyaltyUpgrades["loyalty_rewards"] == true { loyaltyPerSec += 1.0 }
+        if state.loyaltyUpgrades["loyalty_hiring"] == true { loyaltyPerSec += 2.0 }
+
+        state.loyalty += loyaltyPerSec * dt
     }
 
     // MARK: - GpS Calculation
@@ -79,8 +176,16 @@ struct GameEngine {
             }
         }
 
+        // Institution GpS (Phase 2+)
+        for (id, inst) in state.institutions {
+            guard inst.status == .captured || inst.status == .automated else { continue }
+            guard let def = institutionRegistry[id] else { continue }
+            baseGPS += def.greatnessOutput
+        }
+
         let phaseMultiplier = Self.phaseMultiplier(for: state.phase)
-        return baseGPS * gpsMultiplier * phaseMultiplier
+        let legitimacyMultiplier = state.phase.rawValue >= 2 ? max(0.1, state.legitimacy / 100.0) : 1.0
+        return baseGPS * gpsMultiplier * phaseMultiplier * legitimacyMultiplier
     }
 
     // MARK: - Attention Per Second

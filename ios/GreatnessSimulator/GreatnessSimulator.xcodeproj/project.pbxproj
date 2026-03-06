@@ -23,6 +23,17 @@
 		A1000001000000000000000E /* EventEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001000000000000000E; };
 		A1000001000000000000000F /* EventModalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001000000000000000F; };
 		A10000010000000000000010 /* PhaseTransitionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000010; };
+		A10000010000000000000011 /* Phase2Institutions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000011; };
+		A10000010000000000000012 /* Phase2Events.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000012; };
+		A10000010000000000000013 /* Phase2Tariffs.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000013; };
+		A10000010000000000000014 /* Phase2DataCenters.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000014; };
+		A10000010000000000000015 /* Phase2Loyalty.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000015; };
+		A10000010000000000000016 /* InstitutionBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000016; };
+		A10000010000000000000017 /* BudgetPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000017; };
+		A10000010000000000000018 /* TariffPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000018; };
+		A10000010000000000000019 /* DataCenterPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000019; };
+		A1000001000000000000001A /* LoyaltyPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001000000000000001A; };
+		A1000001000000000000001B /* ControlDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001000000000000001B; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,6 +53,17 @@
 		A2000001000000000000000E /* EventEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventEngine.swift; sourceTree = "<group>"; };
 		A2000001000000000000000F /* EventModalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventModalView.swift; sourceTree = "<group>"; };
 		A20000010000000000000010 /* PhaseTransitionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhaseTransitionView.swift; sourceTree = "<group>"; };
+		A20000010000000000000011 /* Phase2Institutions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase2Institutions.swift; sourceTree = "<group>"; };
+		A20000010000000000000012 /* Phase2Events.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase2Events.swift; sourceTree = "<group>"; };
+		A20000010000000000000013 /* Phase2Tariffs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase2Tariffs.swift; sourceTree = "<group>"; };
+		A20000010000000000000014 /* Phase2DataCenters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase2DataCenters.swift; sourceTree = "<group>"; };
+		A20000010000000000000015 /* Phase2Loyalty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase2Loyalty.swift; sourceTree = "<group>"; };
+		A20000010000000000000016 /* InstitutionBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstitutionBoardView.swift; sourceTree = "<group>"; };
+		A20000010000000000000017 /* BudgetPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetPanelView.swift; sourceTree = "<group>"; };
+		A20000010000000000000018 /* TariffPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TariffPanelView.swift; sourceTree = "<group>"; };
+		A20000010000000000000019 /* DataCenterPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataCenterPanelView.swift; sourceTree = "<group>"; };
+		A2000001000000000000001A /* LoyaltyPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoyaltyPanelView.swift; sourceTree = "<group>"; };
+		A2000001000000000000001B /* ControlDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlDashboardView.swift; sourceTree = "<group>"; };
 		A30000010000000000000001 /* GreatnessSimulator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GreatnessSimulator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -92,6 +114,11 @@
 				A20000010000000000000008 /* Phase3Events.swift */,
 				A2000001000000000000000B /* Phase1Upgrades.swift */,
 				A2000001000000000000000D /* Phase1Events.swift */,
+				A20000010000000000000011 /* Phase2Institutions.swift */,
+				A20000010000000000000012 /* Phase2Events.swift */,
+				A20000010000000000000013 /* Phase2Tariffs.swift */,
+				A20000010000000000000014 /* Phase2DataCenters.swift */,
+				A20000010000000000000015 /* Phase2Loyalty.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -104,6 +131,12 @@
 				A2000001000000000000000C /* UpgradeListView.swift */,
 				A2000001000000000000000F /* EventModalView.swift */,
 				A20000010000000000000010 /* PhaseTransitionView.swift */,
+				A20000010000000000000016 /* InstitutionBoardView.swift */,
+				A20000010000000000000017 /* BudgetPanelView.swift */,
+				A20000010000000000000018 /* TariffPanelView.swift */,
+				A20000010000000000000019 /* DataCenterPanelView.swift */,
+				A2000001000000000000001A /* LoyaltyPanelView.swift */,
+				A2000001000000000000001B /* ControlDashboardView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -208,6 +241,17 @@
 				A1000001000000000000000E /* EventEngine.swift in Sources */,
 				A1000001000000000000000F /* EventModalView.swift in Sources */,
 				A10000010000000000000010 /* PhaseTransitionView.swift in Sources */,
+				A10000010000000000000011 /* Phase2Institutions.swift in Sources */,
+				A10000010000000000000012 /* Phase2Events.swift in Sources */,
+				A10000010000000000000013 /* Phase2Tariffs.swift in Sources */,
+				A10000010000000000000014 /* Phase2DataCenters.swift in Sources */,
+				A10000010000000000000015 /* Phase2Loyalty.swift in Sources */,
+				A10000010000000000000016 /* InstitutionBoardView.swift in Sources */,
+				A10000010000000000000017 /* BudgetPanelView.swift in Sources */,
+				A10000010000000000000018 /* TariffPanelView.swift in Sources */,
+				A10000010000000000000019 /* DataCenterPanelView.swift in Sources */,
+				A1000001000000000000001A /* LoyaltyPanelView.swift in Sources */,
+				A1000001000000000000001B /* ControlDashboardView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

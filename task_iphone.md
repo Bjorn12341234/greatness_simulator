@@ -93,15 +93,15 @@ The browser game (React/Vite) must NOT be modified — it stays as-is for laptop
 
 ### Sprint 5: Phase 2 — Institutions + Budget
 **Goal:** Phase 2 gameplay loop functional.
-- [ ] Port institution data (13 institutions)
-- [ ] `InstitutionBoardView` — grid of institutions with status
-- [ ] Institution actions (co-opt, replace, purge) with progress timers
-- [ ] Budget allocation UI (sliders for healthcare, military, etc.)
-- [ ] Budget effects on resources (loyalty, control, legitimacy)
-- [ ] Port Phase 2 upgrades and events
-- [ ] Tariff system (activate tariffs, side effects)
-- [ ] Data center upgrades
-- [ ] Phase 2 -> 3 transition (all institutions captured)
+- [x] Port institution data (13 institutions)
+- [x] `InstitutionBoardView` — grid of institutions with status
+- [x] Institution actions (co-opt, replace, purge) with progress timers
+- [x] Budget allocation UI (sliders for healthcare, military, etc.)
+- [x] Budget effects on resources (loyalty, control, legitimacy)
+- [x] Port Phase 2 upgrades and events
+- [x] Tariff system (activate tariffs, side effects)
+- [x] Data center upgrades
+- [x] Phase 2 -> 3 transition (all institutions captured)
 
 ### Sprint 6: Phase 3 — World Greatening
 **Goal:** Country conquest and fleet systems working.
@@ -181,7 +181,7 @@ The browser game (React/Vite) must NOT be modified — it stays as-is for laptop
 | 2 | DONE | 2026-03-06 | ClickerView with tap button, haptics, floating +N text, tab navigation, resource bar animations, click() action |
 | 3 | DONE | 2026-03-06 | Game loop timer (100ms tick), GpS/AttPS/CashPS calculations, 35 Phase 1 upgrades across 7 trees ported, UpgradeListView with purchase UI, cost scaling (1.15^n), prerequisite/unlock conditions, attentionPerClick recalc on purchase, 0 warnings |
 | 4 | DONE | 2026-03-06 | EventEngine with weighted random selection, conditions, unique flags. 33 Phase 1 events ported (8 scandal, 11 opportunity, 10 absurd, 7 contradiction, 6 crisis). EventModalView with category badges, choice buttons, effect previews. Phase transition detection (Neural Backup -> Phase 2). PhaseTransitionView with timed cinematic text. Transition scripts for all 4 phase transitions. applyEffect/resolveEvent/completePhaseTransition actions. Events fire every 120-180s in Phase 1. 0 warnings. |
-| 5 | Not started | — | — |
+| 5 | DONE | 2026-03-06 | 13 institutions ported with 7 action types (co-opt, replace, purge, rebrand, automate, privatize, loyalty test). InstitutionBoardView with expandable cards, resistance bars, action progress. BudgetPanelView with 8 sliders (proportional auto-adjust to 100%). TariffPanelView with 6 tariffs, 4 levels each (Off/Low/Med/High). DataCenterPanelView with 7 sequential upgrades. LoyaltyPanelView with 4 loyalty upgrades. ControlDashboardView sub-tab container. 20 Phase 2 events ported. GameEngine updated: tickInstitutions (action progress + completion), tickTariffs (cash/legitimacy per second), tickLegitimacy (base decay + budget recovery), tickLoyaltyGeneration (from institutions + upgrades). Institution GpS added to calculateGPS. Legitimacy multiplier on GpS. Resource bar shows loyalty/legitimacy in Phase 2+. Control tab appears in Phase 2+. Phase 2 initialization in completePhaseTransition. 0 errors. |
 | 6 | Not started | — | — |
 | 7 | Not started | — | — |
 | 8 | Not started | — | — |

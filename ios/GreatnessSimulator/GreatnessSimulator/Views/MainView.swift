@@ -7,7 +7,7 @@ enum GameTab: String, CaseIterable {
     case world = "World"
     case space = "Space"
     case cosmic = "Cosmic"
-    case stats = "Stats"
+    case prestige = "Prestige"
     case settings = "Settings"
 
     var icon: String {
@@ -18,7 +18,7 @@ enum GameTab: String, CaseIterable {
         case .world: return "globe.americas.fill"
         case .space: return "sparkles"
         case .cosmic: return "atom"
-        case .stats: return "chart.bar.fill"
+        case .prestige: return "sparkles"
         case .settings: return "gearshape.fill"
         }
     }
@@ -30,7 +30,7 @@ enum GameTab: String, CaseIterable {
         case .world: return 3
         case .space: return 4
         case .cosmic: return 5
-        case .stats, .settings: return 1
+        case .prestige, .settings: return 1
         }
     }
 }
@@ -63,10 +63,8 @@ struct MainView: View {
                         SpaceView()
                     case .cosmic:
                         CosmicView()
-                    case .stats:
-                        Text("Coming soon")
-                            .foregroundStyle(.secondary)
-                            .frame(maxHeight: .infinity)
+                    case .prestige:
+                        PrestigeView()
                     case .settings:
                         Text("Coming soon")
                             .foregroundStyle(.secondary)

@@ -55,7 +55,7 @@ struct GameEngine {
 
         // Event scheduling — seed first event if needed
         if state.nextEventAt == 0 {
-            state.nextEventAt = EventEngine.scheduleNext(phase: state.phase.rawValue, now: now)
+            state.nextEventAt = EventEngine.scheduleNext(phase: state.phase.rawValue, now: now, prestigeUpgrades: state.prestigeUpgrades)
         }
 
         // Event trigger
@@ -64,7 +64,7 @@ struct GameEngine {
                 state.activeEvent = event
             } else {
                 // No eligible events — reschedule
-                state.nextEventAt = EventEngine.scheduleNext(phase: state.phase.rawValue, now: now)
+                state.nextEventAt = EventEngine.scheduleNext(phase: state.phase.rawValue, now: now, prestigeUpgrades: state.prestigeUpgrades)
             }
         }
 
@@ -147,6 +147,9 @@ struct GameEngine {
         let capturedCount = state.institutions.values.filter { $0.status == .captured || $0.status == .automated }.count
         decay += Double(capturedCount) * 0.0002
 
+        // Prestige: reduce decay rate
+        decay *= prestigeLegitimacyDecayMultiplier(upgrades: state.prestigeUpgrades)
+
         // Recovery from budget
         let healthRecovery = budget.healthcare * 0.003
         let socialRecovery = budget.socialBenefits * 0.002
@@ -154,7 +157,8 @@ struct GameEngine {
         let recovery = (healthRecovery + socialRecovery + propRecovery) / 100.0 // normalize from percentage
 
         let netChange = (recovery - decay) * dt
-        state.legitimacy = max(0, min(100, state.legitimacy + netChange))
+        let floor = prestigeLegitimacyFloor(upgrades: state.prestigeUpgrades)
+        state.legitimacy = max(floor, min(100, state.legitimacy + netChange))
     }
 
     // MARK: - Loyalty Generation Tick
@@ -415,7 +419,8 @@ struct GameEngine {
         // Drift reduction from education budget
         let driftReduction = state.budget.education * 0.0001
         let netDrift = (driftRate + weaponDrift - driftReduction) * dt
-        state.realityDrift = max(0, min(100, state.realityDrift + netDrift))
+        let driftCap = 100.0 * prestigeDriftCapMultiplier(upgrades: state.prestigeUpgrades)
+        state.realityDrift = max(0, min(driftCap, state.realityDrift + netDrift))
     }
 
     // MARK: - Cosmic Tick (Phase 5+)
@@ -512,7 +517,8 @@ struct GameEngine {
         }
 
         let netDrift = (driftFromStars + driftFromProbes + guDrift - driftReduction) * dt
-        state.realityDrift = max(0, min(100, state.realityDrift + netDrift))
+        let cosmicDriftCap = 100.0 * prestigeDriftCapMultiplier(upgrades: state.prestigeUpgrades)
+        state.realityDrift = max(0, min(cosmicDriftCap, state.realityDrift + netDrift))
 
         // 5. Legitimacy from black hole upgrades
         var legitPerSec: Double = 0
@@ -578,7 +584,9 @@ struct GameEngine {
 
         let phaseMultiplier = Self.phaseMultiplier(for: state.phase)
         let legitimacyMultiplier = state.phase.rawValue >= 2 ? max(0.1, state.legitimacy / 100.0) : 1.0
-        return baseGPS * gpsMultiplier * phaseMultiplier * legitimacyMultiplier
+        let prestigeGPS = prestigeGPSMultiplier(upgrades: state.prestigeUpgrades)
+        let prestigeLevelBonus = 1.0 + 0.1 * Double(state.prestigeLevel)
+        return baseGPS * gpsMultiplier * phaseMultiplier * legitimacyMultiplier * prestigeGPS * prestigeLevelBonus
     }
 
     // MARK: - Attention Per Second
@@ -609,8 +617,9 @@ struct GameEngine {
 
     // MARK: - Upgrade Cost
 
-    static func upgradeCost(data: UpgradeData, currentCount: Int) -> Double {
-        data.baseCost * pow(1.15, Double(currentCount))
+    static func upgradeCost(data: UpgradeData, currentCount: Int, prestigeUpgrades: [String: Bool] = [:]) -> Double {
+        let base = data.baseCost * pow(1.15, Double(currentCount))
+        return base * prestigeResearchDiscount(upgrades: prestigeUpgrades)
     }
 
     // MARK: - Phase Multiplier
@@ -635,6 +644,8 @@ struct GameEngine {
                 total += effect.value * Double(upgradeState.count)
             }
         }
+        // Prestige click power multiplier
+        total *= prestigeClickPowerMultiplier(upgrades: state.prestigeUpgrades)
         return total
     }
 }

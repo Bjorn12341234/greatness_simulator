@@ -38,16 +38,17 @@ struct EventEngine {
     }
 
     /// Schedule the next event time
-    static func scheduleNext(phase: Int, now: Double) -> Double {
-        let delay: Double
+    static func scheduleNext(phase: Int, now: Double, prestigeUpgrades: [String: Bool] = [:]) -> Double {
+        let baseDelay: Double
         switch phase {
-        case 1: delay = Double.random(in: 120...180)
-        case 2: delay = Double.random(in: 90...150)
-        case 3: delay = Double.random(in: 60...120)
-        case 4: delay = Double.random(in: 40...80)
-        case 5: delay = Double.random(in: 15...30)
-        default: delay = 120
+        case 1: baseDelay = Double.random(in: 120...180)
+        case 2: baseDelay = Double.random(in: 90...150)
+        case 3: baseDelay = Double.random(in: 60...120)
+        case 4: baseDelay = Double.random(in: 40...80)
+        case 5: baseDelay = Double.random(in: 15...30)
+        default: baseDelay = 120
         }
+        let delay = baseDelay * prestigeEventCooldownMultiplier(upgrades: prestigeUpgrades)
         return now + delay
     }
 

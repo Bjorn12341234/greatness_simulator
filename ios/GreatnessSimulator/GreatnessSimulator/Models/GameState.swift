@@ -146,7 +146,7 @@ final class GameState: Codable {
         let state = upgrades[id] ?? UpgradeState()
         guard state.count < data.maxCount else { return false }
 
-        let cost = GameEngine.upgradeCost(data: data, currentCount: state.count)
+        let cost = GameEngine.upgradeCost(data: data, currentCount: state.count, prestigeUpgrades: prestigeUpgrades)
 
         // Check affordability
         switch data.costResource {
@@ -208,7 +208,7 @@ final class GameState: Codable {
         }
         activeEvent = nil
         // Schedule next event
-        nextEventAt = EventEngine.scheduleNext(phase: phase.rawValue, now: Date().timeIntervalSince1970)
+        nextEventAt = EventEngine.scheduleNext(phase: phase.rawValue, now: Date().timeIntervalSince1970, prestigeUpgrades: prestigeUpgrades)
     }
 
     func dismissEvent() {
@@ -216,7 +216,7 @@ final class GameState: Codable {
             eventHistory.append(event.id)
         }
         activeEvent = nil
-        nextEventAt = EventEngine.scheduleNext(phase: phase.rawValue, now: Date().timeIntervalSince1970)
+        nextEventAt = EventEngine.scheduleNext(phase: phase.rawValue, now: Date().timeIntervalSince1970, prestigeUpgrades: prestigeUpgrades)
     }
 
     func applyEffect(_ effect: Effect) {
@@ -685,12 +685,118 @@ final class GameState: Codable {
         }
     }
 
+    // MARK: - Prestige Actions
+
+    func purchasePrestigeUpgrade(id: String) {
+        guard let def = prestigeUpgradeRegistry[id] else { return }
+        guard prestigeUpgrades[id] != true else { return }
+        guard prestigePoints >= def.cost else { return }
+        // Check prerequisites
+        for prereq in def.prerequisites {
+            guard prestigeUpgrades[prereq] == true else { return }
+        }
+        prestigePoints -= def.cost
+        prestigeUpgrades[id] = true
+    }
+
+    func prestige() {
+        let ppEarned = calculatePrestigePoints(greatnessUnits: greatnessUnits)
+        guard ppEarned > 0 else { return }
+
+        // Preserve across prestige
+        let preservedAchievements = achievements
+        let preservedPrestigeUpgrades = prestigeUpgrades
+        let preservedPrestigeLevel = prestigeLevel + 1
+        let preservedPrestigePoints = prestigePoints + Double(ppEarned)
+        let preservedSettings = settings
+
+        // Calculate starting click power from prestige upgrades
+        let startClickPower = prestigeClickPowerMultiplier(upgrades: preservedPrestigeUpgrades)
+
+        // Reset everything to defaults
+        let now = Date().timeIntervalSince1970
+
+        phase = .personalBrand
+        startedAt = now
+        lastTickAt = now
+        lastSaveAt = 0
+        totalPlayTime = 0
+
+        greatness = 0
+        greatnessPerSecond = 0
+        cash = 0
+        attention = 0
+        influence = 0
+
+        loyalty = 50
+        control = 0
+        legitimacy = 100
+        surveillance = 0
+
+        budget = BudgetAllocation()
+        tariffs = [:]
+        dataCenterUpgrades = [:]
+        loyaltyUpgrades = [:]
+
+        treatyPower = 0
+        sanctions = 0
+        annexationPoints = 0
+        warOutput = 0
+        nobelScore = 0
+        nobelPrizesWon = 0
+        nobelThreshold = 100
+        fear = 0
+
+        rocketMass = 0
+        orbitalIndustry = 0
+        miningOutput = 0
+        colonists = 0
+        terraformProgress = 0
+
+        computronium = 0
+        greatnessUnits = 0
+        realityDrift = 0
+        starsConverted = 0
+        probesLaunched = 0
+
+        doublethinkTokens = 0
+        clickCount = 0
+        attentionPerClick = startClickPower
+
+        upgrades = [:]
+        institutions = [:]
+        countries = [:]
+        fleet = [:]
+        shipyardLevel = 0
+        shipyardQueue = nil
+        space = SpaceState()
+        universe = UniverseState()
+        contradictions = [:]
+
+        eventQueue = []
+        eventHistory = []
+        activeEvent = nil
+        nextEventAt = now + 120
+        pendingTransitionFrom = nil
+        pendingTransitionTo = nil
+
+        // Restore preserved state
+        achievements = preservedAchievements
+        prestigeUpgrades = preservedPrestigeUpgrades
+        prestigeLevel = preservedPrestigeLevel
+        prestigePoints = preservedPrestigePoints
+        settings = preservedSettings
+
+        // Save immediately after prestige
+        _ = SaveEngine.save(state: self)
+    }
+
     // MARK: - Upgrade Helpers
 
     func isUpgradeAffordable(_ data: UpgradeData) -> Bool {
         let state = upgrades[data.id] ?? UpgradeState()
         guard state.count < data.maxCount else { return false }
-        let cost = GameEngine.upgradeCost(data: data, currentCount: state.count)
+        let cost = GameEngine.upgradeCost(data: data, currentCount: state.count, prestigeUpgrades: prestigeUpgrades)
         switch data.costResource {
         case .attention: return attention >= cost
         case .cash: return cash >= cost

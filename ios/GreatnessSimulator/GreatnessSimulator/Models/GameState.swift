@@ -133,6 +133,13 @@ final class GameState: Codable {
 
     init() {}
 
+    // MARK: - Actions
+
+    func click() {
+        clickCount += 1
+        attention += attentionPerClick
+    }
+
     required init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         phase = try c.decode(Phase.self, forKey: .phase)

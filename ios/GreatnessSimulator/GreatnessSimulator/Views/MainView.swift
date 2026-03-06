@@ -1,30 +1,58 @@
 import SwiftUI
 
+enum GameTab: String, CaseIterable {
+    case click = "Click"
+    case upgrades = "Upgrades"
+    case stats = "Stats"
+    case settings = "Settings"
+
+    var icon: String {
+        switch self {
+        case .click: return "hand.tap.fill"
+        case .upgrades: return "arrow.up.square.fill"
+        case .stats: return "chart.bar.fill"
+        case .settings: return "gearshape.fill"
+        }
+    }
+}
+
 struct MainView: View {
     @Environment(GameState.self) private var game
+    @State private var selectedTab: GameTab = .click
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                // Phase header
-                phaseHeader
+        VStack(spacing: 0) {
+            // Phase header
+            phaseHeader
 
-                // Resource bar
-                resourceBar
+            // Resource bar
+            resourceBar
 
-                Spacer()
-
-                // Placeholder for main content
-                Text("Sprint 2: Click button goes here")
-                    .foregroundStyle(.secondary)
-
-                Spacer()
-
-                // Tab bar placeholder
-                tabBar
+            // Main content
+            Group {
+                switch selectedTab {
+                case .click:
+                    ClickerView()
+                case .upgrades:
+                    Text("Sprint 3: Upgrades")
+                        .foregroundStyle(.secondary)
+                        .frame(maxHeight: .infinity)
+                case .stats:
+                    Text("Coming soon")
+                        .foregroundStyle(.secondary)
+                        .frame(maxHeight: .infinity)
+                case .settings:
+                    Text("Coming soon")
+                        .foregroundStyle(.secondary)
+                        .frame(maxHeight: .infinity)
+                }
             }
-            .background(Color.black)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            // Tab bar
+            tabBar
         }
+        .background(Color.black)
     }
 
     // MARK: - Phase Header
@@ -80,6 +108,7 @@ struct MainView: View {
                 .fontWeight(.semibold)
                 .foregroundStyle(color)
                 .contentTransition(.numericText())
+                .animation(.easeOut(duration: 0.2), value: value)
         }
         .frame(maxWidth: .infinity)
     }
@@ -88,24 +117,25 @@ struct MainView: View {
 
     private var tabBar: some View {
         HStack {
-            tabItem(icon: "hand.tap.fill", label: "Click")
-            tabItem(icon: "arrow.up.square.fill", label: "Upgrades")
-            tabItem(icon: "chart.bar.fill", label: "Stats")
-            tabItem(icon: "gearshape.fill", label: "Settings")
+            ForEach(GameTab.allCases, id: \.self) { tab in
+                Button {
+                    selectedTab = tab
+                    Haptics.light()
+                } label: {
+                    VStack(spacing: 2) {
+                        Image(systemName: tab.icon)
+                            .font(.title3)
+                        Text(tab.rawValue)
+                            .font(.caption2)
+                    }
+                    .foregroundStyle(selectedTab == tab ? .orange : .secondary)
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.plain)
+            }
         }
         .padding(.vertical, 8)
         .background(Color(white: 0.08))
-    }
-
-    private func tabItem(icon: String, label: String) -> some View {
-        VStack(spacing: 2) {
-            Image(systemName: icon)
-                .font(.title3)
-            Text(label)
-                .font(.caption2)
-        }
-        .foregroundStyle(.secondary)
-        .frame(maxWidth: .infinity)
     }
 }
 

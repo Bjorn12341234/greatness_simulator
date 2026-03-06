@@ -38,6 +38,7 @@ enum GameTab: String, CaseIterable {
 struct MainView: View {
     @Environment(GameState.self) private var game
     @State private var selectedTab: GameTab = .click
+    @State private var achievementToasts: [AchievementToast] = []
 
     var body: some View {
         ZStack {
@@ -47,6 +48,9 @@ struct MainView: View {
 
                 // Resource bar
                 resourceBar
+
+                // Ticker
+                TickerView()
 
                 // Main content
                 Group {
@@ -66,9 +70,7 @@ struct MainView: View {
                     case .prestige:
                         PrestigeView()
                     case .settings:
-                        Text("Coming soon")
-                            .foregroundStyle(.secondary)
-                            .frame(maxHeight: .infinity)
+                        SettingsView()
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -97,6 +99,28 @@ struct MainView: View {
             }
         }
         .background(Color.black)
+        .onChange(of: game.pendingAchievementToasts) { _, newToasts in
+            for toastId in newToasts {
+                if let def = achievementRegistry[toastId] {
+                    withAnimation {
+                        achievementToasts.append(AchievementToast(achievement: def))
+                    }
+                }
+            }
+            game.pendingAchievementToasts.removeAll()
+            // Auto-dismiss after 4 seconds
+            for toast in achievementToasts {
+                let toastId = toast.id
+                DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        achievementToasts.removeAll { $0.id == toastId }
+                    }
+                }
+            }
+        }
+        .overlay(alignment: .top) {
+            AchievementToastOverlay(toasts: $achievementToasts)
+        }
     }
 
     // MARK: - Phase Header

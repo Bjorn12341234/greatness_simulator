@@ -53,6 +53,15 @@
 		A1000001000000000000002C /* OfflineEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001000000000000002C; };
 		A1000001000000000000002D /* PrestigeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001000000000000002D; };
 		A1000001000000000000002E /* OfflineReturnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001000000000000002E; };
+		A1000001000000000000002F /* Achievements.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001000000000000002F; };
+		A10000010000000000000030 /* AchievementEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000030; };
+		A10000010000000000000031 /* ContradictionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000031; };
+		A10000010000000000000032 /* AchievementPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000032; };
+		A10000010000000000000033 /* AchievementToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000033; };
+		A10000010000000000000034 /* ContradictionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000034; };
+		A10000010000000000000035 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000035; };
+		A10000010000000000000036 /* TickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000036; };
+		A10000010000000000000037 /* EventRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000037; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -102,6 +111,15 @@
 		A2000001000000000000002C /* OfflineEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineEngine.swift; sourceTree = "<group>"; };
 		A2000001000000000000002D /* PrestigeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrestigeView.swift; sourceTree = "<group>"; };
 		A2000001000000000000002E /* OfflineReturnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineReturnView.swift; sourceTree = "<group>"; };
+		A2000001000000000000002F /* Achievements.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Achievements.swift; sourceTree = "<group>"; };
+		A20000010000000000000030 /* AchievementEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementEngine.swift; sourceTree = "<group>"; };
+		A20000010000000000000031 /* ContradictionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContradictionEngine.swift; sourceTree = "<group>"; };
+		A20000010000000000000032 /* AchievementPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementPanelView.swift; sourceTree = "<group>"; };
+		A20000010000000000000033 /* AchievementToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementToastView.swift; sourceTree = "<group>"; };
+		A20000010000000000000034 /* ContradictionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContradictionView.swift; sourceTree = "<group>"; };
+		A20000010000000000000035 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A20000010000000000000036 /* TickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TickerView.swift; sourceTree = "<group>"; };
+		A20000010000000000000037 /* EventRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventRegistry.swift; sourceTree = "<group>"; };
 		A30000010000000000000001 /* GreatnessSimulator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GreatnessSimulator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -144,6 +162,8 @@
 				A2000001000000000000000E /* EventEngine.swift */,
 				A2000001000000000000002B /* SaveEngine.swift */,
 				A2000001000000000000002C /* OfflineEngine.swift */,
+				A20000010000000000000030 /* AchievementEngine.swift */,
+				A20000010000000000000031 /* ContradictionEngine.swift */,
 			);
 			path = Engine;
 			sourceTree = "<group>";
@@ -167,6 +187,8 @@
 				A20000010000000000000026 /* Phase5Universe.swift */,
 				A20000010000000000000027 /* Phase5Events.swift */,
 				A2000001000000000000002A /* PrestigeUpgrades.swift */,
+				A2000001000000000000002F /* Achievements.swift */,
+				A20000010000000000000037 /* EventRegistry.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -194,6 +216,11 @@
 				A20000010000000000000029 /* EndingView.swift */,
 				A2000001000000000000002D /* PrestigeView.swift */,
 				A2000001000000000000002E /* OfflineReturnView.swift */,
+				A20000010000000000000032 /* AchievementPanelView.swift */,
+				A20000010000000000000033 /* AchievementToastView.swift */,
+				A20000010000000000000034 /* ContradictionView.swift */,
+				A20000010000000000000035 /* SettingsView.swift */,
+				A20000010000000000000036 /* TickerView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -328,6 +355,15 @@
 				A1000001000000000000002C /* OfflineEngine.swift in Sources */,
 				A1000001000000000000002D /* PrestigeView.swift in Sources */,
 				A1000001000000000000002E /* OfflineReturnView.swift in Sources */,
+				A1000001000000000000002F /* Achievements.swift in Sources */,
+				A10000010000000000000030 /* AchievementEngine.swift in Sources */,
+				A10000010000000000000031 /* ContradictionEngine.swift in Sources */,
+				A10000010000000000000032 /* AchievementPanelView.swift in Sources */,
+				A10000010000000000000033 /* AchievementToastView.swift in Sources */,
+				A10000010000000000000034 /* ContradictionView.swift in Sources */,
+				A10000010000000000000035 /* SettingsView.swift in Sources */,
+				A10000010000000000000036 /* TickerView.swift in Sources */,
+				A10000010000000000000037 /* EventRegistry.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

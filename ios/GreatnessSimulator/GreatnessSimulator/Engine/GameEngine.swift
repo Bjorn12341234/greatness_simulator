@@ -15,17 +15,23 @@ struct GameEngine {
         state.totalPlayTime += dt
         state.lastTickAt = now
 
+        // Save previous attention for contradiction engine
+        let prevAttention = state.attention
+
         // Recalculate derived rates
         let gps = calculateGPS(state: state)
         let attPerSec = calculateAttentionPerSecond(state: state)
         let cashPerSec = calculateCashPerSecond(state: state)
+
+        // Apply credibility penalty to cash generation
+        let credibilityMult = ContradictionEngine.credibilityEffect(state: state)
 
         state.greatnessPerSecond = gps
 
         // Apply production
         state.greatness += gps * dt
         state.attention += attPerSec * dt
-        state.cash += cashPerSec * dt
+        state.cash += cashPerSec * credibilityMult * dt
 
         // Phase 2+ systems
         if state.phase.rawValue >= 2 {
@@ -68,6 +74,26 @@ struct GameEngine {
             }
         }
 
+        // Contradiction system
+        ContradictionEngine.update(state: state, dt: dt, prevAttention: prevAttention)
+
+        // Initialize attention_credibility contradiction if not present (Phase 1 default)
+        if state.contradictions["attention_credibility"] == nil {
+            state.contradictions["attention_credibility"] = ContradictionState(sideA: 50, sideB: 50, balancedTime: 0, active: true)
+        }
+
+        // Achievement checking (every 10 ticks = ~1 second)
+        tickCounter += 1
+        if tickCounter % 10 == 0 {
+            let newlyUnlocked = AchievementEngine.checkAchievements(state: state)
+            if !newlyUnlocked.isEmpty {
+                Haptics.medium()
+                for a in newlyUnlocked {
+                    state.pendingAchievementToasts.append(a.id)
+                }
+            }
+        }
+
         // Phase transition check (only when no pending transition and no active event)
         if state.pendingTransitionFrom == nil && state.activeEvent == nil {
             if let nextPhase = state.checkPhaseTransition() {
@@ -76,6 +102,10 @@ struct GameEngine {
             }
         }
     }
+
+    // MARK: - Achievement Tick Counter
+
+    private static var tickCounter: Int = 0
 
     // MARK: - Event Pool
 

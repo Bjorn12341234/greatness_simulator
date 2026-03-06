@@ -99,6 +99,7 @@ final class GameState: Codable {
 
     // MARK: - Achievements
     var achievements: [String: Bool] = [:]
+    var pendingAchievementToasts: [String] = []
 
     // MARK: - Prestige Upgrades
     var prestigeUpgrades: [String: Bool] = [:]
@@ -640,6 +641,8 @@ final class GameState: Codable {
                     resistance: def.resistance
                 )
             }
+            // Control vs Legitimacy contradiction
+            contradictions["control_legitimacy"] = ContradictionState(sideA: 0, sideB: 100, balancedTime: 0, active: true)
         } else if newPhase == .cosmicGreatening {
             // Initialize Phase 5 state
             universe = UniverseState()
@@ -676,6 +679,9 @@ final class GameState: Codable {
             )
             // Start with shipyard level 1
             self.shipyardLevel = 1
+            // War vs Nobel + Expansion vs Stability contradictions
+            contradictions["war_nobel"] = ContradictionState(sideA: 50, sideB: 50, balancedTime: 0, active: true)
+            contradictions["expansion_stability"] = ContradictionState(sideA: 0, sideB: 100, balancedTime: 0, active: true)
             // Reset Phase 3 resources
             self.nobelScore = 0
             self.nobelPrizesWon = 0

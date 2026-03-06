@@ -177,7 +177,7 @@ The browser game (React/Vite) must NOT be modified — it stays as-is for laptop
 
 | Sprint | Status | Date | Notes |
 |--------|--------|------|-------|
-| 1 | Not started | — | — |
+| 1 | DONE | 2026-03-06 | Xcode project, Types, GameState, GameEngine stub, MainView, Formatting, builds on simulator |
 | 2 | Not started | — | — |
 | 3 | Not started | — | — |
 | 4 | Not started | — | — |

@@ -34,6 +34,12 @@
 		A10000010000000000000019 /* DataCenterPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000019; };
 		A1000001000000000000001A /* LoyaltyPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001000000000000001A; };
 		A1000001000000000000001B /* ControlDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001000000000000001B; };
+		A1000001000000000000001C /* Phase3Countries.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001000000000000001C; };
+		A1000001000000000000001D /* Phase3Fleet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001000000000000001D; };
+		A1000001000000000000001E /* WorldDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001000000000000001E; };
+		A1000001000000000000001F /* WorldMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001000000000000001F; };
+		A10000010000000000000020 /* FleetPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000020; };
+		A10000010000000000000021 /* NobelMeterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000021; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -64,6 +70,12 @@
 		A20000010000000000000019 /* DataCenterPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataCenterPanelView.swift; sourceTree = "<group>"; };
 		A2000001000000000000001A /* LoyaltyPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoyaltyPanelView.swift; sourceTree = "<group>"; };
 		A2000001000000000000001B /* ControlDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlDashboardView.swift; sourceTree = "<group>"; };
+		A2000001000000000000001C /* Phase3Countries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase3Countries.swift; sourceTree = "<group>"; };
+		A2000001000000000000001D /* Phase3Fleet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase3Fleet.swift; sourceTree = "<group>"; };
+		A2000001000000000000001E /* WorldDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorldDashboardView.swift; sourceTree = "<group>"; };
+		A2000001000000000000001F /* WorldMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorldMapView.swift; sourceTree = "<group>"; };
+		A20000010000000000000020 /* FleetPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FleetPanelView.swift; sourceTree = "<group>"; };
+		A20000010000000000000021 /* NobelMeterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NobelMeterView.swift; sourceTree = "<group>"; };
 		A30000010000000000000001 /* GreatnessSimulator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GreatnessSimulator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -119,6 +131,8 @@
 				A20000010000000000000013 /* Phase2Tariffs.swift */,
 				A20000010000000000000014 /* Phase2DataCenters.swift */,
 				A20000010000000000000015 /* Phase2Loyalty.swift */,
+				A2000001000000000000001C /* Phase3Countries.swift */,
+				A2000001000000000000001D /* Phase3Fleet.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -137,6 +151,10 @@
 				A20000010000000000000019 /* DataCenterPanelView.swift */,
 				A2000001000000000000001A /* LoyaltyPanelView.swift */,
 				A2000001000000000000001B /* ControlDashboardView.swift */,
+				A2000001000000000000001E /* WorldDashboardView.swift */,
+				A2000001000000000000001F /* WorldMapView.swift */,
+				A20000010000000000000020 /* FleetPanelView.swift */,
+				A20000010000000000000021 /* NobelMeterView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -252,6 +270,12 @@
 				A10000010000000000000019 /* DataCenterPanelView.swift in Sources */,
 				A1000001000000000000001A /* LoyaltyPanelView.swift in Sources */,
 				A1000001000000000000001B /* ControlDashboardView.swift in Sources */,
+				A1000001000000000000001C /* Phase3Countries.swift in Sources */,
+				A1000001000000000000001D /* Phase3Fleet.swift in Sources */,
+				A1000001000000000000001E /* WorldDashboardView.swift in Sources */,
+				A1000001000000000000001F /* WorldMapView.swift in Sources */,
+				A10000010000000000000020 /* FleetPanelView.swift in Sources */,
+				A10000010000000000000021 /* NobelMeterView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

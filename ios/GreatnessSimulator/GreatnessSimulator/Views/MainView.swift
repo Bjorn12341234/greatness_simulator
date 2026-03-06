@@ -4,6 +4,7 @@ enum GameTab: String, CaseIterable {
     case click = "Click"
     case upgrades = "Upgrades"
     case control = "Control"
+    case world = "World"
     case stats = "Stats"
     case settings = "Settings"
 
@@ -12,6 +13,7 @@ enum GameTab: String, CaseIterable {
         case .click: return "hand.tap.fill"
         case .upgrades: return "arrow.up.square.fill"
         case .control: return "building.columns.fill"
+        case .world: return "globe.americas.fill"
         case .stats: return "chart.bar.fill"
         case .settings: return "gearshape.fill"
         }
@@ -21,6 +23,7 @@ enum GameTab: String, CaseIterable {
         switch self {
         case .click, .upgrades: return 1
         case .control: return 2
+        case .world: return 3
         case .stats, .settings: return 1
         }
     }
@@ -48,6 +51,8 @@ struct MainView: View {
                         UpgradeListView()
                     case .control:
                         ControlDashboardView()
+                    case .world:
+                        WorldDashboardView()
                     case .stats:
                         Text("Coming soon")
                             .foregroundStyle(.secondary)
@@ -120,6 +125,13 @@ struct MainView: View {
                     resourcePill(icon: "heart.fill", label: "Loyalty", value: game.loyalty, color: .purple)
                     resourcePill(icon: "shield.fill", label: "Legitimacy", value: game.legitimacy, color: game.legitimacy > 50 ? .green : .red)
                     resourcePill(icon: "eye.trianglebadge.exclamationmark.fill", label: "Control", value: game.control, color: .orange)
+                }
+            }
+            if game.phase.rawValue >= 3 {
+                HStack(spacing: 16) {
+                    resourcePill(icon: "bolt.shield.fill", label: "War", value: game.warOutput, color: .red)
+                    resourcePill(icon: "exclamationmark.triangle.fill", label: "Fear", value: game.fear, color: .orange)
+                    resourcePill(icon: "medal.fill", label: "Nobel", value: game.nobelScore, color: .yellow)
                 }
             }
         }

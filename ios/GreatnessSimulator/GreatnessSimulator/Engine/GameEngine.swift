@@ -35,6 +35,14 @@ struct GameEngine {
             tickLoyaltyGeneration(state: state, dt: dt)
         }
 
+        // Phase 3+ systems
+        if state.phase.rawValue >= 3 {
+            tickCountries(state: state, dt: dt, now: now)
+            tickShipyard(state: state, now: now)
+            tickFear(state: state, dt: dt)
+            tickNobel(state: state, dt: dt)
+        }
+
         // Event scheduling — seed first event if needed
         if state.nextEventAt == 0 {
             state.nextEventAt = EventEngine.scheduleNext(phase: state.phase.rawValue, now: now)
@@ -158,6 +166,175 @@ struct GameEngine {
         state.loyalty += loyaltyPerSec * dt
     }
 
+    // MARK: - Country Tick
+
+    static func tickCountries(state: GameState, dt: Double, now: Double) {
+        for (id, var country) in state.countries {
+            // Process active operations
+            var completedOps: [ActiveOperation] = []
+            var remaining: [ActiveOperation] = []
+
+            for op in country.activeOperations {
+                let elapsed = now - op.startedAt
+                if elapsed >= op.duration {
+                    completedOps.append(op)
+                } else {
+                    remaining.append(op)
+                }
+            }
+            country.activeOperations = remaining
+
+            for op in completedOps {
+                guard let tacticDef = tacticRegistry[op.tacticType] else { continue }
+
+                // Apply resistance reduction
+                country.resistance = max(0, country.resistance - tacticDef.resistanceReduction)
+
+                // Apply stability impact
+                country.stability = max(0, min(100, country.stability + tacticDef.stabilityImpact))
+
+                // Apply fear
+                state.fear += tacticDef.fearGenerated
+
+                // Apply Nobel impact
+                state.nobelScore += tacticDef.nobelImpact
+
+                // Special mechanic handling
+                switch op.tacticType {
+                case "joint_defense":
+                    country.encirclement += 15
+                case "trade_integration":
+                    country.tradeDependency += 20
+                case "purchase_offer":
+                    country.purchaseOffers += 1
+                case "annexation", "full_absorption", "absorption_referendum":
+                    country.status = .annexed
+                case "kompromat_resist":
+                    country.kompromatLevel = max(0, country.kompromatLevel - 20)
+                case "aid_reduction":
+                    country.kompromatLevel = max(0, country.kompromatLevel - 10)
+                case "leverage_reversal":
+                    country.kompromatLevel = max(0, country.kompromatLevel - 40)
+                default: break
+                }
+
+                // Refugee wave mechanic (Sand Republic / Copper States wars -> Eurovia/Nordland)
+                if (id == "sand_republic" || id == "copper_states") &&
+                   (op.tacticType == "freedom_operation" || op.tacticType == "coup_sponsorship") {
+                    country.refugeeWavesSent += 1
+                    // Destabilize Eurovia and Nordland
+                    if var eurovia = state.countries["eurovia"] {
+                        eurovia.stability = max(0, eurovia.stability - 5)
+                        eurovia.resistance = max(0, eurovia.resistance - 3)
+                        state.countries["eurovia"] = eurovia
+                    }
+                    if var nordland = state.countries["nordland"] {
+                        nordland.stability = max(0, nordland.stability - 5)
+                        nordland.resistance = max(0, nordland.resistance - 3)
+                        state.countries["nordland"] = nordland
+                    }
+                }
+            }
+
+            // Country-specific special mechanics
+            if id == "tundra_republic" && country.encirclement >= 100 {
+                country.resistance = 0
+            }
+            if id == "maple_federation" && country.tradeDependency >= 100 {
+                country.resistance = min(country.resistance, 10)
+            }
+            if id == "frostheim" && country.purchaseOffers >= 5 {
+                country.resistance = 0
+            }
+
+            // Status transitions (only for non-annexed/non-allied)
+            if country.status != .annexed && country.status != .allied {
+                if country.resistance <= 0 {
+                    country.status = .occupied
+                } else if country.resistance < 30 && country.status == .independent {
+                    country.status = .infiltrated
+                } else if country.stability < 20 && country.status == .independent {
+                    country.status = .coupTarget
+                }
+            }
+
+            state.countries[id] = country
+        }
+    }
+
+    // MARK: - Shipyard Tick
+
+    static func tickShipyard(state: GameState, now: Double) {
+        guard var queue = state.shipyardQueue else { return }
+        guard state.shipyardLevel > 0 else { return }
+
+        let buildInterval = 10.0 / Double(state.shipyardLevel)
+        let elapsed = now - queue.lastBuildAt
+        let shipsToBuild = Int(elapsed / buildInterval)
+
+        if shipsToBuild > 0 {
+            let remaining = queue.quantity - queue.builtSoFar
+            let built = min(shipsToBuild, remaining)
+            queue.builtSoFar += built
+            queue.lastBuildAt = now
+
+            state.fleet[queue.shipId, default: 0] += built
+
+            // Recalculate war output and fear from fleet
+            recalculateFleetStats(state: state)
+
+            if queue.builtSoFar >= queue.quantity {
+                state.shipyardQueue = nil
+            } else {
+                state.shipyardQueue = queue
+            }
+        }
+    }
+
+    // MARK: - Fleet Stats
+
+    static func recalculateFleetStats(state: GameState) {
+        var totalWarOutput: Double = 0
+        var totalFear: Double = 0
+        for (shipId, count) in state.fleet {
+            guard let def = shipClassRegistry[shipId] else { continue }
+            totalWarOutput += def.warOutput * Double(count)
+            totalFear += def.fear * Double(count)
+        }
+        state.warOutput = totalWarOutput
+        // Fear from fleet is added in tickFear
+    }
+
+    // MARK: - Fear Tick
+
+    static func tickFear(state: GameState, dt: Double) {
+        // Fear decays slowly
+        state.fear = max(0, state.fear - 0.5 * dt)
+
+        // Fear drains legitimacy
+        if state.fear > 0 {
+            let fearDrain = state.fear * 0.005 * dt
+            state.legitimacy = max(0, state.legitimacy - fearDrain)
+        }
+    }
+
+    // MARK: - Nobel Tick
+
+    static func tickNobel(state: GameState, dt: Double) {
+        // Nobel score slowly decays (need active effort)
+        state.nobelScore = max(0, state.nobelScore - 0.1 * dt)
+
+        // Award Nobel Prize when threshold reached
+        if state.nobelScore >= state.nobelThreshold {
+            state.nobelPrizesWon += 1
+            state.nobelScore = 0
+            state.legitimacy = min(100, state.legitimacy + 15)
+            state.greatness += 10000 * GameEngine.phaseMultiplier(for: state.phase)
+            // Increase threshold by 50% for next prize
+            state.nobelThreshold *= 1.5
+        }
+    }
+
     // MARK: - GpS Calculation
 
     static func calculateGPS(state: GameState) -> Double {
@@ -181,6 +358,13 @@ struct GameEngine {
             guard inst.status == .captured || inst.status == .automated else { continue }
             guard let def = institutionRegistry[id] else { continue }
             baseGPS += def.greatnessOutput
+        }
+
+        // Country GpS (Phase 3+) — annexed countries contribute greatness
+        for (id, country) in state.countries {
+            guard country.status == .annexed else { continue }
+            guard let def = countryRegistry[id] else { continue }
+            baseGPS += def.greatnessPotential
         }
 
         let phaseMultiplier = Self.phaseMultiplier(for: state.phase)

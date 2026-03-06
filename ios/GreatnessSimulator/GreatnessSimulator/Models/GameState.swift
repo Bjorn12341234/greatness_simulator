@@ -304,6 +304,72 @@ final class GameState: Codable {
         loyaltyUpgrades[id] = true
     }
 
+    // MARK: - Country Actions (Phase 3)
+
+    func startCountryTactic(countryId: String, tacticType: String) {
+        guard let tacticDef = tacticRegistry[tacticType] else { return }
+        guard var country = countries[countryId] else { return }
+
+        // Validate tactic is available for this country
+        let available = tacticsForCountry(countryId)
+        guard available.contains(where: { $0.type == tacticType }) else { return }
+
+        // Annexation requires resistance <= 0
+        if tacticType == "annexation" || tacticType == "full_absorption" || tacticType == "absorption_referendum" {
+            if tacticType == "annexation" {
+                guard country.resistance <= 0 else { return }
+            }
+        }
+
+        // Max 2 simultaneous operations
+        guard country.activeOperations.count < 2 else { return }
+
+        // Check costs
+        guard cash >= tacticDef.costCash else { return }
+        guard loyalty >= tacticDef.costLoyalty else { return }
+        guard warOutput >= tacticDef.costWarOutput else { return }
+
+        // Deduct costs
+        cash -= tacticDef.costCash
+        loyalty -= tacticDef.costLoyalty
+        // warOutput is a derived stat from fleet, don't deduct
+
+        // Apply immediate legitimacy impact
+        legitimacy = max(0, min(100, legitimacy + tacticDef.legitimacyImpact))
+
+        // Add operation
+        let now = Date().timeIntervalSince1970
+        let op = ActiveOperation(tacticType: tacticType, startedAt: now, duration: tacticDef.duration)
+        country.activeOperations.append(op)
+        countries[countryId] = country
+    }
+
+    // MARK: - Fleet Actions (Phase 3)
+
+    func buildShip(shipId: String, quantity: Int = 1) {
+        guard let def = shipClassRegistry[shipId] else { return }
+        guard shipyardLevel >= def.requiresShipyard else { return }
+        guard shipyardQueue == nil else { return } // Only one build at a time
+
+        let totalCost = def.costCash * Double(quantity)
+        guard cash >= totalCost else { return }
+        cash -= totalCost
+
+        shipyardQueue = ShipyardOrder(
+            shipId: shipId,
+            quantity: quantity,
+            builtSoFar: 0,
+            lastBuildAt: Date().timeIntervalSince1970
+        )
+    }
+
+    func upgradeShipyard() {
+        let cost = shipyardUpgradeCost(currentLevel: shipyardLevel)
+        guard cash >= cost else { return }
+        cash -= cost
+        shipyardLevel += 1
+    }
+
     // MARK: - Phase Transition
 
     func checkPhaseTransition() -> Phase? {
@@ -346,6 +412,29 @@ final class GameState: Codable {
                     resistance: def.resistance
                 )
             }
+        } else if newPhase == .worldGreatening {
+            // Initialize all 14 countries + Azure State
+            for def in countryDefs {
+                self.countries[def.id] = CountryState(
+                    resistance: def.startingResistance,
+                    stability: def.startingStability,
+                    kompromatLevel: def.id == "azure_state" ? 80 : 0
+                )
+            }
+            // Azure State as special entity
+            self.countries[azureStateDef.id] = CountryState(
+                resistance: azureStateDef.startingResistance,
+                stability: azureStateDef.startingStability,
+                kompromatLevel: 80
+            )
+            // Start with shipyard level 1
+            self.shipyardLevel = 1
+            // Reset Phase 3 resources
+            self.nobelScore = 0
+            self.nobelPrizesWon = 0
+            self.nobelThreshold = 100
+            self.fear = 0
+            self.warOutput = 0
         }
     }
 

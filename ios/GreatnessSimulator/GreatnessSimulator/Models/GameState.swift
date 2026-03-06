@@ -232,6 +232,13 @@ final class GameState: Codable {
         case "loyalty": loyalty += amount
         case "control": control += amount
         case "surveillance": surveillance += amount
+        case "warOutput": warOutput += amount
+        case "rocketMass": rocketMass += amount
+        case "orbitalIndustry": orbitalIndustry += amount
+        case "miningOutput": miningOutput += amount
+        case "colonists": colonists = max(0, colonists + amount)
+        case "terraformProgress": terraformProgress = max(0, min(100, terraformProgress + amount))
+        case "realityDrift": realityDrift = max(0, realityDrift + amount)
         default: break
         }
     }
@@ -370,6 +377,161 @@ final class GameState: Codable {
         shipyardLevel += 1
     }
 
+    // MARK: - Space Actions (Phase 4)
+
+    func upgradeLaunchTier() {
+        guard let next = nextLaunchTier(after: space.launchTier) else { return }
+        let costMult = space.bridgeUpgrades["reality_budgeting"] == true ? 0.7 : 1.0
+        let cost = next.costCash * costMult
+        guard cash >= cost else { return }
+        cash -= cost
+        space.launchTier = next.id
+    }
+
+    func buildLunarBuilding(id: String) {
+        guard let def = lunarBuildingRegistry[id] else { return }
+        // Check not already built
+        switch id {
+        case "moon_base": guard !space.moonBase else { return }
+        case "he3_mining": guard !space.helium3Mining else { return }
+        case "lunar_shipyard": guard !space.lunarShipyard else { return }
+        case "lunar_heritage": guard !space.lunarHeritage else { return }
+        default: return
+        }
+        // Check prerequisite
+        if let prereq = def.prerequisite {
+            switch prereq {
+            case "moon_base": guard space.moonBase else { return }
+            case "he3_mining": guard space.helium3Mining else { return }
+            default: return
+            }
+        }
+        let costMult = space.bridgeUpgrades["reality_budgeting"] == true ? 0.7 : 1.0
+        let costCash = def.costCash * costMult
+        guard cash >= costCash, rocketMass >= def.costRocketMass else { return }
+        cash -= costCash
+        rocketMass -= def.costRocketMass
+        switch id {
+        case "moon_base": space.moonBase = true
+        case "he3_mining": space.helium3Mining = true
+        case "lunar_shipyard": space.lunarShipyard = true
+        case "lunar_heritage": space.lunarHeritage = true
+        default: break
+        }
+    }
+
+    func buildMarsUpgrade(id: String) {
+        guard let def = marsUpgradeRegistry[id] else { return }
+        switch id {
+        case "mars_colony": guard !space.marsColony else { return }
+        case "atmosphere_processing": guard !space.atmosphereProcessing else { return }
+        case "water_extraction": guard !space.waterExtraction else { return }
+        default: return
+        }
+        if let prereq = def.prerequisite {
+            switch prereq {
+            case "mars_colony": guard space.marsColony else { return }
+            case "atmosphere_processing": guard space.atmosphereProcessing else { return }
+            default: return
+            }
+        }
+        let costMult = space.bridgeUpgrades["reality_budgeting"] == true ? 0.7 : 1.0
+        let costCash = def.costCash * costMult
+        guard cash >= costCash, rocketMass >= def.costRocketMass, miningOutput >= def.costMiningOutput else { return }
+        cash -= costCash
+        rocketMass -= def.costRocketMass
+        // miningOutput is a rate, not consumed — match web behavior
+        switch id {
+        case "mars_colony": space.marsColony = true
+        case "atmosphere_processing": space.atmosphereProcessing = true
+        case "water_extraction": space.waterExtraction = true
+        default: break
+        }
+    }
+
+    func buildAsteroidUnit(tierId: String) {
+        guard let def = asteroidTierRegistry[tierId] else { return }
+        let count: Int = {
+            switch tierId {
+            case "prospector_drones": return space.asteroidProspectors
+            case "mining_rigs": return space.asteroidRigs
+            case "refineries": return space.asteroidRefineries
+            default: return 0
+            }
+        }()
+        guard count < def.maxCount else { return }
+        if let prereq = def.prerequisite {
+            switch prereq {
+            case "prospector_drones": guard space.asteroidProspectors > 0 else { return }
+            case "mining_rigs": guard space.asteroidRigs > 0 else { return }
+            default: return
+            }
+        }
+        let costMult = space.bridgeUpgrades["reality_budgeting"] == true ? 0.7 : 1.0
+        let costCash = def.costCash * costMult
+        guard cash >= costCash, rocketMass >= def.costRocketMass else { return }
+        cash -= costCash
+        rocketMass -= def.costRocketMass
+        switch tierId {
+        case "prospector_drones": space.asteroidProspectors += 1
+        case "mining_rigs": space.asteroidRigs += 1
+        case "refineries": space.asteroidRefineries += 1
+        default: break
+        }
+    }
+
+    func buildSatellite() {
+        guard space.propagandaSatellites < propagandaSatelliteMax else { return }
+        let costMult = space.bridgeUpgrades["reality_budgeting"] == true ? 0.7 : 1.0
+        let costCash = propagandaSatelliteCostCash * costMult
+        guard cash >= costCash, orbitalIndustry >= propagandaSatelliteCostOI else { return }
+        cash -= costCash
+        // OI is a resource, deduct it
+        orbitalIndustry -= propagandaSatelliteCostOI
+        space.propagandaSatellites += 1
+    }
+
+    func buildDysonPrototype() {
+        guard space.dysonSwarms == 0 else { return }
+        guard hasLaunchTier(current: space.launchTier, required: dysonPrototypeRequiresLaunchTier) else { return }
+        guard orbitalIndustry >= dysonPrototypeRequiresOI else { return }
+        let costMult = space.bridgeUpgrades["reality_budgeting"] == true ? 0.7 : 1.0
+        let costCash = dysonPrototypeCostCash * costMult
+        guard cash >= costCash, orbitalIndustry >= dysonPrototypeCostOI else { return }
+        cash -= costCash
+        orbitalIndustry -= dysonPrototypeCostOI
+        space.dysonSwarms = 1
+    }
+
+    func purchaseSpaceWeapon(id: String) {
+        guard let def = spaceWeaponRegistry[id] else { return }
+        guard space.spaceWeapons[id] != true else { return }
+        guard hasLaunchTier(current: space.launchTier, required: def.requiresLaunchTier) else { return }
+        let costMult = space.bridgeUpgrades["reality_budgeting"] == true ? 0.7 : 1.0
+        let cost = def.costCash * costMult
+        guard cash >= cost else { return }
+        cash -= cost
+        space.spaceWeapons[id] = true
+        // Apply immediate effects
+        warOutput += def.warOutput
+        fear += def.fear
+        legitimacy = max(0, min(100, legitimacy + def.legitimacyImpact))
+    }
+
+    func purchaseBridgeUpgrade(id: String) {
+        guard let def = bridgeUpgradeRegistry[id] else { return }
+        guard space.bridgeUpgrades[id] != true else { return }
+        if let prereq = def.prerequisite {
+            guard space.bridgeUpgrades[prereq] == true else { return }
+        }
+        let costMult = space.bridgeUpgrades["reality_budgeting"] == true ? 0.7 : 1.0
+        let cost = def.costCash * costMult
+        guard cash >= cost, loyalty >= def.costLoyalty else { return }
+        cash -= cost
+        loyalty -= def.costLoyalty
+        space.bridgeUpgrades[id] = true
+    }
+
     // MARK: - Phase Transition
 
     func checkPhaseTransition() -> Phase? {
@@ -412,6 +574,16 @@ final class GameState: Codable {
                     resistance: def.resistance
                 )
             }
+        } else if newPhase == .spaceGreatening {
+            // Initialize Phase 4 state
+            space = SpaceState()
+            rocketMass = 0
+            orbitalIndustry = 0
+            miningOutput = 0
+            colonists = 0
+            terraformProgress = 0
+            // Activate Long-Term vs Short-Term contradiction
+            contradictions["longterm_shortterm"] = ContradictionState(sideA: 50, sideB: 50, balancedTime: 0, active: true)
         } else if newPhase == .worldGreatening {
             // Initialize all 14 countries + Azure State
             for def in countryDefs {

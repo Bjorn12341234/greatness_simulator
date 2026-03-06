@@ -43,6 +43,11 @@ struct GameEngine {
             tickNobel(state: state, dt: dt)
         }
 
+        // Phase 4+ systems
+        if state.phase.rawValue >= 4 {
+            tickSpace(state: state, dt: dt)
+        }
+
         // Event scheduling — seed first event if needed
         if state.nextEventAt == 0 {
             state.nextEventAt = EventEngine.scheduleNext(phase: state.phase.rawValue, now: now)
@@ -74,6 +79,7 @@ struct GameEngine {
         case .personalBrand: return phase1Events
         case .institutionalCapture: return phase2Events
         case .worldGreatening: return phase3Events
+        case .spaceGreatening: return phase4Events
         default: return phase1Events
         }
     }
@@ -333,6 +339,78 @@ struct GameEngine {
             // Increase threshold by 50% for next prize
             state.nobelThreshold *= 1.5
         }
+    }
+
+    // MARK: - Space Tick (Phase 4+)
+
+    static func tickSpace(state: GameState, dt: Double) {
+        let space = state.space
+
+        // Speed multiplier from budget + bridge upgrades
+        let spaceBonus = 1.0 + state.budget.spaceProgram / 100.0
+        let researchSpeed: Double = space.bridgeUpgrades["long_term_thinking"] == true ? 1.5 : 1.0
+
+        // Rocket Mass from launch tier
+        if let tierDef = launchTierRegistry[space.launchTier] {
+            state.rocketMass += tierDef.rocketMassPerSecond * spaceBonus * researchSpeed * dt
+        }
+
+        // Orbital Industry from lunar buildings
+        var oiPerSec: Double = 0
+        if space.moonBase { oiPerSec += 1 }
+        if space.helium3Mining { oiPerSec += 0.5 }
+        if space.lunarShipyard { oiPerSec += 2 }
+        state.orbitalIndustry += oiPerSec * spaceBonus * dt
+
+        // Mining Output from He-3 + asteroids
+        var miningPerSec: Double = 0
+        if space.helium3Mining { miningPerSec += 2 }
+        miningPerSec += Double(space.asteroidProspectors) * 1
+        miningPerSec += Double(space.asteroidRigs) * 3
+        miningPerSec += Double(space.asteroidRefineries) * 8
+        state.miningOutput += miningPerSec * spaceBonus * dt
+
+        // Colonists from Mars upgrades
+        var colonistsPerSec: Double = 0
+        if space.marsColony { colonistsPerSec += 0.5 }
+        if space.waterExtraction { colonistsPerSec += 1 }
+        state.colonists += colonistsPerSec * dt
+
+        // Terraform Progress from Mars upgrades
+        var terraformPerSec: Double = 0
+        if space.atmosphereProcessing { terraformPerSec += 0.01 }
+        if space.waterExtraction { terraformPerSec += 0.02 }
+        state.terraformProgress = min(100, state.terraformProgress + terraformPerSec * spaceBonus * researchSpeed * dt)
+
+        // Mars renaming at 25% terraform
+        if state.terraformProgress >= 25 && !space.marsRenamed {
+            state.space.marsRenamed = true
+        }
+
+        // Greatness from Mars upgrades
+        var extraGPS: Double = 0
+        if space.marsColony { extraGPS += 5 }
+        if space.atmosphereProcessing { extraGPS += 10 }
+        if space.waterExtraction { extraGPS += 15 }
+        state.greatness += extraGPS * phaseMultiplier(for: state.phase) * dt
+
+        // Legitimacy from lunar heritage + satellites
+        var legitPerSec: Double = 0
+        if space.lunarHeritage { legitPerSec += 0.02 }
+        legitPerSec += Double(space.propagandaSatellites) * propagandaSatelliteLegitimacyPerUnit
+        state.legitimacy = min(100, state.legitimacy + legitPerSec * dt)
+
+        // Attention from satellites
+        state.attention += Double(space.propagandaSatellites) * propagandaSatelliteAttentionPerUnit * dt
+
+        // Reality Drift from satellites
+        let driftRate = Double(space.propagandaSatellites) * propagandaSatelliteDriftPerUnit
+        // Drift from weapons
+        let weaponDrift = Double(space.spaceWeapons.values.filter { $0 }.count) * 0.002
+        // Drift reduction from education budget
+        let driftReduction = state.budget.education * 0.0001
+        let netDrift = (driftRate + weaponDrift - driftReduction) * dt
+        state.realityDrift = max(0, min(100, state.realityDrift + netDrift))
     }
 
     // MARK: - GpS Calculation

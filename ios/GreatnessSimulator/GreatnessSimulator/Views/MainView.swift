@@ -5,6 +5,7 @@ enum GameTab: String, CaseIterable {
     case upgrades = "Upgrades"
     case control = "Control"
     case world = "World"
+    case space = "Space"
     case stats = "Stats"
     case settings = "Settings"
 
@@ -14,6 +15,7 @@ enum GameTab: String, CaseIterable {
         case .upgrades: return "arrow.up.square.fill"
         case .control: return "building.columns.fill"
         case .world: return "globe.americas.fill"
+        case .space: return "sparkles"
         case .stats: return "chart.bar.fill"
         case .settings: return "gearshape.fill"
         }
@@ -24,6 +26,7 @@ enum GameTab: String, CaseIterable {
         case .click, .upgrades: return 1
         case .control: return 2
         case .world: return 3
+        case .space: return 4
         case .stats, .settings: return 1
         }
     }
@@ -53,6 +56,8 @@ struct MainView: View {
                         ControlDashboardView()
                     case .world:
                         WorldDashboardView()
+                    case .space:
+                        SpaceView()
                     case .stats:
                         Text("Coming soon")
                             .foregroundStyle(.secondary)
@@ -132,6 +137,13 @@ struct MainView: View {
                     resourcePill(icon: "bolt.shield.fill", label: "War", value: game.warOutput, color: .red)
                     resourcePill(icon: "exclamationmark.triangle.fill", label: "Fear", value: game.fear, color: .orange)
                     resourcePill(icon: "medal.fill", label: "Nobel", value: game.nobelScore, color: .yellow)
+                }
+            }
+            if game.phase.rawValue >= 4 {
+                HStack(spacing: 16) {
+                    resourcePill(icon: "flame.fill", label: "Rocket", value: game.rocketMass, color: .orange)
+                    resourcePill(icon: "gearshape.2.fill", label: "Orbital", value: game.orbitalIndustry, color: .cyan)
+                    resourcePill(icon: "hammer.fill", label: "Mining", value: game.miningOutput, color: .yellow)
                 }
             }
         }

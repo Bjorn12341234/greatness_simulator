@@ -79,6 +79,12 @@ struct EventEngine {
         case "legitimacy": value = state.legitimacy
         case "fear": value = state.fear
         case "nobelScore": value = state.nobelScore
+        case "rocketMass": value = state.rocketMass
+        case "orbitalIndustry": value = state.orbitalIndustry
+        case "miningOutput": value = state.miningOutput
+        case "colonists": value = state.colonists
+        case "terraformProgress": value = state.terraformProgress
+        case "realityDrift": value = state.realityDrift
         default: value = 0
         }
 

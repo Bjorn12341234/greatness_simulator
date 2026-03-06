@@ -116,14 +116,14 @@ The browser game (React/Vite) must NOT be modified — it stays as-is for laptop
 
 ### Sprint 7: Phase 4 — Space Greatening
 **Goal:** Space progression from launch to solar system industrialization.
-- [ ] Launch tier system (launchpad -> mass driver)
-- [ ] Moon base, Mars colony, asteroid mining
-- [ ] `SpaceView` with visual progression
-- [ ] Space weapons
-- [ ] Bridge upgrades (Phase 4->5)
-- [ ] Propaganda satellites, Dyson prototypes
-- [ ] Port Phase 4 upgrades and events
-- [ ] Phase 4 -> 5 transition
+- [x] Launch tier system (launchpad -> mass driver)
+- [x] Moon base, Mars colony, asteroid mining
+- [x] `SpaceView` with visual progression
+- [x] Space weapons
+- [x] Bridge upgrades (Phase 4->5)
+- [x] Propaganda satellites, Dyson prototypes
+- [x] Port Phase 4 upgrades and events
+- [x] Phase 4 -> 5 transition
 
 ### Sprint 8: Phase 5 — Cosmic Greatening + Ending
 **Goal:** Endgame loop, universe conversion, ending sequence.
@@ -183,7 +183,7 @@ The browser game (React/Vite) must NOT be modified — it stays as-is for laptop
 | 4 | DONE | 2026-03-06 | EventEngine with weighted random selection, conditions, unique flags. 33 Phase 1 events ported (8 scandal, 11 opportunity, 10 absurd, 7 contradiction, 6 crisis). EventModalView with category badges, choice buttons, effect previews. Phase transition detection (Neural Backup -> Phase 2). PhaseTransitionView with timed cinematic text. Transition scripts for all 4 phase transitions. applyEffect/resolveEvent/completePhaseTransition actions. Events fire every 120-180s in Phase 1. 0 warnings. |
 | 5 | DONE | 2026-03-06 | 13 institutions ported with 7 action types (co-opt, replace, purge, rebrand, automate, privatize, loyalty test). InstitutionBoardView with expandable cards, resistance bars, action progress. BudgetPanelView with 8 sliders (proportional auto-adjust to 100%). TariffPanelView with 6 tariffs, 4 levels each (Off/Low/Med/High). DataCenterPanelView with 7 sequential upgrades. LoyaltyPanelView with 4 loyalty upgrades. ControlDashboardView sub-tab container. 20 Phase 2 events ported. GameEngine updated: tickInstitutions (action progress + completion), tickTariffs (cash/legitimacy per second), tickLegitimacy (base decay + budget recovery), tickLoyaltyGeneration (from institutions + upgrades). Institution GpS added to calculateGPS. Legitimacy multiplier on GpS. Resource bar shows loyalty/legitimacy in Phase 2+. Control tab appears in Phase 2+. Phase 2 initialization in completePhaseTransition. 0 errors. |
 | 6 | DONE | 2026-03-06 | 14 countries ported across 6 regions + Azure State special entity. ~20 tactics (standard: partnership, trade leverage, media infiltration, freedom foundation, coup sponsorship, freedom operation, extraordinary rendition, annexation, post-war rebuilding, immigration weaponization; country-specific: purchase offer, trade integration, absorption referendum, joint defense, sanctions campaign, democracy fund; Azure State: kompromat resist, aid reduction, leverage reversal, full absorption). 7 ship classes (Patrol Boat $10K -> Orbital Peace Platform $1M). WorldDashboardView with Overview/Countries/Fleet sub-tabs. WorldMapView with expandable country cards, resistance/stability bars, special mechanic indicators (encirclement, trade dependency, purchase offers, kompromat), tactic buttons with cost display. FleetPanelView with shipyard upgrades, build queue progress, ship class cards with build 1/5/10 buttons. NobelMeterView with progress bar, prize medals, irony indicators (wars during peace prize pursuit). 19 Phase 3 events ported (Nobel, warship leak, coalition condemnation, refugee crisis, Frostheim, Eurovia, Maple, Tundra, Petro, Canal, Azure State, NGO backlash, peace summit, rendition fallout, Jade Empire warning, ironic Nobel, island climate, arms deal, Oil Republic). GameEngine: tickCountries (operation processing, special mechanics, refugee waves, status transitions), tickShipyard (build queue, fleet recalc), tickFear (decay + legitimacy drain), tickNobel (decay + prize awarding with 50% threshold increase). Country GpS added to calculateGPS. Phase 3 initialization in completePhaseTransition (14 countries + Azure State + shipyard level 1). World tab in MainView. Phase 3 resource pills (War, Fear, Nobel). 0 build errors. |
-| 7 | Not started | — | — |
+| 7 | DONE | 2026-03-06 | 4 launch tiers (Launchpad $500K -> Mass Driver $100M) with rocket mass production. 4 lunar buildings (Moon Base, He-3 Mining, Lunar Shipyard, Lunar Heritage) with OI/mining/legitimacy effects. 3 Mars upgrades (Colony, Atmosphere Processing, Water Extraction) with colonists/terraform/greatness production. Mars auto-renames at 25% terraform. 3 asteroid tiers (Prospector Drones max 10, Mining Rigs max 10, Refineries max 5). Propaganda satellites (max 20, legitimacy+attention+drift). Dyson Swarm Prototype (requires Mass Driver + 80 OI). 4 space weapons (Peace Laser, Negotiation Device, Railgun, Solar Shade) with war/fear/legitimacy effects. 4 bridge upgrades (Long-Term Thinking +50% speed, Science Rebranding, Reality Budgeting -30% costs, Patience Campaign). 11 Phase 4 events (colonist revolt, greatium, alien signal, launch failure, dust storm, asteroid dispute, tourism, heritage vandalism, satellite hack, mars renaming, space debris, dyson proposal). SpaceView with 6 sub-tabs (Overview, Launch, Moon, Mars, Mining, Weapons). GameEngine tickSpace() handles all production: rocket mass, orbital industry, mining, colonists, terraform, legitimacy, attention, reality drift. Phase 4 initialization in completePhaseTransition. Space tab + resource pills (Rocket, Orbital, Mining) in MainView. EventEngine conditions updated for Phase 4 resources. Phase 4->5 transition: dysonSwarms > 0 && asteroidRigs >= 5 && orbitalIndustry >= 100. 0 build errors. |
 | 8 | Not started | — | — |
 | 9 | Not started | — | — |
 | 10 | Not started | — | — |

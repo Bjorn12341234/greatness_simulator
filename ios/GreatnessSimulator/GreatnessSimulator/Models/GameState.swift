@@ -239,6 +239,10 @@ final class GameState: Codable {
         case "colonists": colonists = max(0, colonists + amount)
         case "terraformProgress": terraformProgress = max(0, min(100, terraformProgress + amount))
         case "realityDrift": realityDrift = max(0, realityDrift + amount)
+        case "computronium": computronium = max(0, computronium + amount)
+        case "greatnessUnits": greatnessUnits = max(0, greatnessUnits + amount)
+        case "starsConverted": starsConverted = max(0, min(Double(TOTAL_REACHABLE_STARS), starsConverted + amount))
+        case "probesLaunched": probesLaunched = max(0, probesLaunched + amount)
         default: break
         }
     }
@@ -532,6 +536,68 @@ final class GameState: Codable {
         space.bridgeUpgrades[id] = true
     }
 
+    // MARK: - Universe Actions (Phase 5)
+
+    func purchaseProbeUpgrade(id: String) {
+        guard let def = probeUpgradeRegistry[id] else { return }
+        guard universe.probeUpgrades[id] != true else { return }
+        if let prereq = def.prerequisite {
+            guard universe.probeUpgrades[prereq] == true else { return }
+        }
+        guard cash >= def.costCash, computronium >= def.costComputronium else { return }
+        cash -= def.costCash
+        computronium -= def.costComputronium
+        universe.probeUpgrades[id] = true
+    }
+
+    func purchaseDysonUpgrade(id: String) {
+        guard let def = dysonSwarmRegistry[id] else { return }
+        guard universe.dysonUpgrades[id] != true else { return }
+        if let prereq = def.prerequisite {
+            guard universe.dysonUpgrades[prereq] == true else { return }
+        }
+        guard cash >= def.costCash, orbitalIndustry >= def.costOrbitalIndustry, computronium >= def.costComputronium else { return }
+        cash -= def.costCash
+        orbitalIndustry -= def.costOrbitalIndustry
+        computronium -= def.costComputronium
+        universe.dysonUpgrades[id] = true
+    }
+
+    func purchaseStarBranding(id: String) {
+        guard let def = starBrandingRegistry[id] else { return }
+        guard universe.starBrandingUpgrades[id] != true else { return }
+        if let prereq = def.prerequisite {
+            guard universe.starBrandingUpgrades[prereq] == true else { return }
+        }
+        guard cash >= def.costCash, computronium >= def.costComputronium else { return }
+        cash -= def.costCash
+        computronium -= def.costComputronium
+        universe.starBrandingUpgrades[id] = true
+    }
+
+    func purchaseBlackHole(id: String) {
+        guard let def = blackHoleRegistry[id] else { return }
+        guard universe.blackHoleUpgrades[id] != true else { return }
+        if let prereq = def.prerequisite {
+            guard universe.blackHoleUpgrades[prereq] == true else { return }
+        }
+        guard cash >= def.costCash, computronium >= def.costComputronium else { return }
+        cash -= def.costCash
+        computronium -= def.costComputronium
+        universe.blackHoleUpgrades[id] = true
+    }
+
+    func purchaseNarrativeResearch(id: String) {
+        guard let def = narrativeResearchRegistry[id] else { return }
+        guard universe.narrativeResearch[id] != true else { return }
+        if let prereq = def.prerequisite {
+            guard universe.narrativeResearch[prereq] == true else { return }
+        }
+        guard greatnessUnits >= def.costGU else { return }
+        greatnessUnits -= def.costGU
+        universe.narrativeResearch[id] = true
+    }
+
     // MARK: - Phase Transition
 
     func checkPhaseTransition() -> Phase? {
@@ -574,6 +640,15 @@ final class GameState: Codable {
                     resistance: def.resistance
                 )
             }
+        } else if newPhase == .cosmicGreatening {
+            // Initialize Phase 5 state
+            universe = UniverseState()
+            computronium = 0
+            greatnessUnits = 0
+            probesLaunched = 0
+            starsConverted = 0
+            // Greatness vs Meaning contradiction
+            contradictions["greatness_meaning"] = ContradictionState(sideA: 50, sideB: 50, balancedTime: 0, active: true)
         } else if newPhase == .spaceGreatening {
             // Initialize Phase 4 state
             space = SpaceState()

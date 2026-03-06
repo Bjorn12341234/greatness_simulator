@@ -85,6 +85,10 @@ struct EventEngine {
         case "colonists": value = state.colonists
         case "terraformProgress": value = state.terraformProgress
         case "realityDrift": value = state.realityDrift
+        case "probesLaunched": value = state.probesLaunched
+        case "starsConverted": value = state.starsConverted
+        case "computronium": value = state.computronium
+        case "greatnessUnits": value = state.greatnessUnits
         default: value = 0
         }
 

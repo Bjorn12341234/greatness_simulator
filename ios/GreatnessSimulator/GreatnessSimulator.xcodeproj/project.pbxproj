@@ -44,6 +44,10 @@
 		A10000010000000000000023 /* Phase4Weapons.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000023; };
 		A10000010000000000000024 /* Phase4Events.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000024; };
 		A10000010000000000000025 /* SpaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000025; };
+		A10000010000000000000026 /* Phase5Universe.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000026; };
+		A10000010000000000000027 /* Phase5Events.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000027; };
+		A10000010000000000000028 /* CosmicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000028; };
+		A10000010000000000000029 /* EndingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000029; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -84,6 +88,10 @@
 		A20000010000000000000023 /* Phase4Weapons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase4Weapons.swift; sourceTree = "<group>"; };
 		A20000010000000000000024 /* Phase4Events.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase4Events.swift; sourceTree = "<group>"; };
 		A20000010000000000000025 /* SpaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpaceView.swift; sourceTree = "<group>"; };
+		A20000010000000000000026 /* Phase5Universe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase5Universe.swift; sourceTree = "<group>"; };
+		A20000010000000000000027 /* Phase5Events.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase5Events.swift; sourceTree = "<group>"; };
+		A20000010000000000000028 /* CosmicView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CosmicView.swift; sourceTree = "<group>"; };
+		A20000010000000000000029 /* EndingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndingView.swift; sourceTree = "<group>"; };
 		A30000010000000000000001 /* GreatnessSimulator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GreatnessSimulator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -144,6 +152,8 @@
 				A20000010000000000000022 /* Phase4Space.swift */,
 				A20000010000000000000023 /* Phase4Weapons.swift */,
 				A20000010000000000000024 /* Phase4Events.swift */,
+				A20000010000000000000026 /* Phase5Universe.swift */,
+				A20000010000000000000027 /* Phase5Events.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -167,6 +177,8 @@
 				A20000010000000000000020 /* FleetPanelView.swift */,
 				A20000010000000000000021 /* NobelMeterView.swift */,
 				A20000010000000000000025 /* SpaceView.swift */,
+				A20000010000000000000028 /* CosmicView.swift */,
+				A20000010000000000000029 /* EndingView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -292,6 +304,10 @@
 				A10000010000000000000023 /* Phase4Weapons.swift in Sources */,
 				A10000010000000000000024 /* Phase4Events.swift in Sources */,
 				A10000010000000000000025 /* SpaceView.swift in Sources */,
+				A10000010000000000000026 /* Phase5Universe.swift in Sources */,
+				A10000010000000000000027 /* Phase5Events.swift in Sources */,
+				A10000010000000000000028 /* CosmicView.swift in Sources */,
+				A10000010000000000000029 /* EndingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

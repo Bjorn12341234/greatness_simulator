@@ -6,6 +6,7 @@ enum GameTab: String, CaseIterable {
     case control = "Control"
     case world = "World"
     case space = "Space"
+    case cosmic = "Cosmic"
     case stats = "Stats"
     case settings = "Settings"
 
@@ -16,6 +17,7 @@ enum GameTab: String, CaseIterable {
         case .control: return "building.columns.fill"
         case .world: return "globe.americas.fill"
         case .space: return "sparkles"
+        case .cosmic: return "atom"
         case .stats: return "chart.bar.fill"
         case .settings: return "gearshape.fill"
         }
@@ -27,6 +29,7 @@ enum GameTab: String, CaseIterable {
         case .control: return 2
         case .world: return 3
         case .space: return 4
+        case .cosmic: return 5
         case .stats, .settings: return 1
         }
     }
@@ -58,6 +61,8 @@ struct MainView: View {
                         WorldDashboardView()
                     case .space:
                         SpaceView()
+                    case .cosmic:
+                        CosmicView()
                     case .stats:
                         Text("Coming soon")
                             .foregroundStyle(.secondary)
@@ -86,6 +91,11 @@ struct MainView: View {
                 PhaseTransitionView(fromPhase: from, toPhase: to) {
                     game.completePhaseTransition(to: to)
                 }
+            }
+
+            // Ending sequence overlay
+            if game.universe.endingTriggered && !game.universe.endingComplete {
+                EndingView()
             }
         }
         .background(Color.black)
@@ -144,6 +154,13 @@ struct MainView: View {
                     resourcePill(icon: "flame.fill", label: "Rocket", value: game.rocketMass, color: .orange)
                     resourcePill(icon: "gearshape.2.fill", label: "Orbital", value: game.orbitalIndustry, color: .cyan)
                     resourcePill(icon: "hammer.fill", label: "Mining", value: game.miningOutput, color: .yellow)
+                }
+            }
+            if game.phase.rawValue >= 5 {
+                HStack(spacing: 16) {
+                    resourcePill(icon: "paperplane.fill", label: "Probes", value: game.probesLaunched, color: .cyan)
+                    resourcePill(icon: "atom", label: "GU", value: game.greatnessUnits, color: Color(red: 0.6, green: 0.2, blue: 1.0))
+                    resourcePill(icon: "waveform.path.ecg", label: "Drift", value: game.realityDrift, color: game.realityDrift > 60 ? .red : .yellow)
                 }
             }
         }

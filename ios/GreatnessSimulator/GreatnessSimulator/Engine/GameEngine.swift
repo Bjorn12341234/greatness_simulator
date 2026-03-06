@@ -48,6 +48,11 @@ struct GameEngine {
             tickSpace(state: state, dt: dt)
         }
 
+        // Phase 5+ systems
+        if state.phase.rawValue >= 5 {
+            tickCosmic(state: state, dt: dt)
+        }
+
         // Event scheduling — seed first event if needed
         if state.nextEventAt == 0 {
             state.nextEventAt = EventEngine.scheduleNext(phase: state.phase.rawValue, now: now)
@@ -80,7 +85,7 @@ struct GameEngine {
         case .institutionalCapture: return phase2Events
         case .worldGreatening: return phase3Events
         case .spaceGreatening: return phase4Events
-        default: return phase1Events
+        case .cosmicGreatening: return phase5Events
         }
     }
 
@@ -411,6 +416,132 @@ struct GameEngine {
         let driftReduction = state.budget.education * 0.0001
         let netDrift = (driftRate + weaponDrift - driftReduction) * dt
         state.realityDrift = max(0, min(100, state.realityDrift + netDrift))
+    }
+
+    // MARK: - Cosmic Tick (Phase 5+)
+
+    static func tickCosmic(state: GameState, dt: Double) {
+        let universe = state.universe
+
+        // 1. Probe Production
+        var baseProbeRate: Double = 0
+        var totalReplicationRate: Double = 0
+        var conversionEfficiency: Double = 1.0
+
+        for def in probeUpgradeDefs {
+            guard universe.probeUpgrades[def.id] == true else { continue }
+            baseProbeRate += def.probeProductionPerSecond
+            totalReplicationRate += def.replicationRate
+            if def.conversionEfficiency > 0 {
+                conversionEfficiency *= def.conversionEfficiency
+            }
+        }
+
+        let replication = state.probesLaunched * totalReplicationRate
+        let newProbes = (baseProbeRate + replication) * dt
+        state.probesLaunched += newProbes
+
+        // 2. Star Conversion
+        var conversionRate: Double = 0
+        for def in starBrandingDefs {
+            guard universe.starBrandingUpgrades[def.id] == true else { continue }
+            conversionRate += def.conversionRatePerSecond
+        }
+
+        if conversionRate > 0 {
+            let available = min(state.probesLaunched * 0.1, Double(TOTAL_REACHABLE_STARS) - state.starsConverted)
+            let actual = min(available, conversionRate * conversionEfficiency * dt)
+            if actual > 0 {
+                state.starsConverted += actual
+                state.computronium += actual * COMPUTRONIUM_PER_STAR
+                // Drift from conversion
+                state.realityDrift += actual * STAR_DRIFT_PER_CONVERSION
+            }
+        }
+
+        // 3. Greatness Units Production
+        let baseGU = state.computronium * GU_PER_COMPUTRONIUM * 0.01
+
+        var dysonGU: Double = 0
+        for def in dysonSwarmDefs {
+            guard universe.dysonUpgrades[def.id] == true else { continue }
+            dysonGU += def.guPerSecond
+        }
+
+        var blackHoleGU: Double = 0
+        for def in blackHoleDefs {
+            guard universe.blackHoleUpgrades[def.id] == true else { continue }
+            blackHoleGU += def.guStorage
+        }
+
+        var narrativeMultiplier: Double = 1.0
+        var narrativeBonus: Double = 0
+        for def in narrativeResearchDefs {
+            guard universe.narrativeResearch[def.id] == true else { continue }
+            if def.guMultiplier > 0 { narrativeMultiplier *= def.guMultiplier }
+            narrativeBonus += def.productionBonus
+        }
+
+        let totalGURate = baseGU + dysonGU + blackHoleGU + narrativeBonus
+        // Depreciation: value decreases as GU grows
+        let depreciation: Double = state.greatnessUnits > 1000
+            ? 1.0 / (1.0 + log10(state.greatnessUnits / 1000.0))
+            : 1.0
+        let guProduced = totalGURate * narrativeMultiplier * depreciation * dt
+
+        // Post-ending decay: 0.5% per second
+        if universe.endingComplete {
+            state.greatnessUnits = max(0, state.greatnessUnits - state.greatnessUnits * 0.005 * dt)
+        }
+
+        state.greatnessUnits += guProduced
+
+        // 4. Reality Drift from Phase 5 sources
+        let driftFromStars = state.starsConverted * 0.0005
+        let driftFromProbes = state.probesLaunched * 0.00002
+        let guDrift = state.greatnessUnits > 0 ? min(0.01, log10(max(1, state.greatnessUnits)) * 0.001) : 0
+
+        var driftReduction: Double = 0
+        for def in narrativeResearchDefs {
+            guard universe.narrativeResearch[def.id] == true else { continue }
+            driftReduction += def.driftReduction
+        }
+        for def in blackHoleDefs {
+            guard universe.blackHoleUpgrades[def.id] == true else { continue }
+            driftReduction += def.driftReduction
+        }
+
+        let netDrift = (driftFromStars + driftFromProbes + guDrift - driftReduction) * dt
+        state.realityDrift = max(0, min(100, state.realityDrift + netDrift))
+
+        // 5. Legitimacy from black hole upgrades
+        var legitPerSec: Double = 0
+        for def in blackHoleDefs {
+            guard universe.blackHoleUpgrades[def.id] == true else { continue }
+            legitPerSec += def.legitimacyPerSecond
+        }
+
+        // Narrative legitimacy floor
+        var legitFloor: Double = 0
+        for def in narrativeResearchDefs {
+            guard universe.narrativeResearch[def.id] == true else { continue }
+            if def.legitimacyFloor > legitFloor { legitFloor = def.legitimacyFloor }
+        }
+
+        if legitPerSec > 0 {
+            state.legitimacy = min(100, state.legitimacy + legitPerSec * dt)
+        }
+        if legitFloor > 0 {
+            state.legitimacy = max(legitFloor, state.legitimacy)
+        }
+
+        // 6. Universe Conversion percentage
+        state.universe.universeConverted = (state.starsConverted / Double(TOTAL_REACHABLE_STARS)) * 100.0
+
+        // 7. Ending trigger
+        if state.universe.universeConverted >= 100 && !universe.endingTriggered {
+            state.universe.endingTriggered = true
+        }
     }
 
     // MARK: - GpS Calculation

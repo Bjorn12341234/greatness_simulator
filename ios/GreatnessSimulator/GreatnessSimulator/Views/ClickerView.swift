@@ -5,7 +5,7 @@ struct ClickerView: View {
     @Environment(\.theme) private var theme
     @State private var buttonScale: CGFloat = 1.0
     @State private var glowPulse: CGFloat = 1.0
-    @State private var floatingTexts: [FloatingText] = []
+    @State private var particles: [ClickParticle] = []
 
     var body: some View {
         ZStack {
@@ -42,10 +42,10 @@ struct ClickerView: View {
                             .frame(width: 160, height: 160)
 
                         VStack(spacing: 4) {
-                            Text("DECLARE")
+                            Text("GENERATE")
                                 .font(.headline)
                                 .fontWeight(.bold)
-                            Text("GREATNESS")
+                            Text("ATTENTION")
                                 .font(.headline)
                                 .fontWeight(.bold)
                         }
@@ -68,13 +68,30 @@ struct ClickerView: View {
                 Spacer()
             }
 
-            ForEach(floatingTexts) { ft in
-                Text("+\(Fmt.compact(ft.amount))")
-                    .font(.callout)
-                    .fontWeight(.bold)
-                    .foregroundStyle(theme.attentionColor)
-                    .position(x: ft.x, y: ft.y)
-                    .opacity(ft.opacity)
+            // Particle overlay
+            TimelineView(.animation(paused: particles.isEmpty)) { timeline in
+                Canvas { context, size in
+                    let now = timeline.date.timeIntervalSinceReferenceDate
+                    for p in particles {
+                        let elapsed = now - p.spawnTime
+                        guard elapsed < p.lifetime else { continue }
+                        let progress = elapsed / p.lifetime
+                        let alpha = 1.0 - progress
+
+                        let x = p.startX + p.vx * elapsed
+                        let y = p.startY + p.vy * elapsed + 40 * elapsed * elapsed // gravity
+
+                        let radius = p.size * (1.0 - progress * 0.5)
+                        let rect = CGRect(x: x - radius, y: y - radius, width: radius * 2, height: radius * 2)
+                        context.opacity = alpha
+                        context.fill(Path(ellipseIn: rect), with: .color(p.color))
+                    }
+                }
+                .allowsHitTesting(false)
+                .onChange(of: timeline.date) { _, _ in
+                    let now = Date().timeIntervalSinceReferenceDate
+                    particles.removeAll { now - $0.spawnTime >= $0.lifetime }
+                }
             }
         }
         .onAppear {
@@ -96,40 +113,50 @@ struct ClickerView: View {
             buttonScale = 1.0
         }
 
-        spawnFloatingText()
+        emitParticles()
     }
 
-    private func spawnFloatingText() {
-        let id = UUID()
-        let xOffset = CGFloat.random(in: -40...40)
-        let ft = FloatingText(
-            id: id,
-            amount: game.attentionPerClick,
-            x: UIScreen.main.bounds.width / 2 + xOffset,
-            y: UIScreen.main.bounds.height / 2 - 40,
-            opacity: 1.0
-        )
-        floatingTexts.append(ft)
+    private let particleColors: [Color] = [
+        Color(red: 1.0, green: 0.4, blue: 0.0),
+        Color(red: 1.0, green: 0.53, blue: 0.2),
+        Color(red: 1.0, green: 0.67, blue: 0.33),
+        Color(red: 1.0, green: 0.33, blue: 0.0),
+        Color(red: 1.0, green: 0.8, blue: 0.27),
+    ]
 
-        withAnimation(.easeOut(duration: 0.8)) {
-            if let i = floatingTexts.firstIndex(where: { $0.id == id }) {
-                floatingTexts[i].y -= 60
-                floatingTexts[i].opacity = 0
-            }
-        }
+    private func emitParticles() {
+        let cx = UIScreen.main.bounds.width / 2
+        let cy = UIScreen.main.bounds.height / 2 - 20
+        let now = Date().timeIntervalSinceReferenceDate
+        let count = 12
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
-            floatingTexts.removeAll { $0.id == id }
+        for i in 0..<count {
+            let angle = (Double.pi * 2 * Double(i)) / Double(count) + Double.random(in: -0.25...0.25)
+            let speed = Double.random(in: 80...200)
+            particles.append(ClickParticle(
+                spawnTime: now,
+                lifetime: Double.random(in: 0.5...0.9),
+                startX: cx,
+                startY: cy,
+                vx: cos(angle) * speed,
+                vy: sin(angle) * speed - 60,
+                size: Double.random(in: 2.5...5),
+                color: particleColors.randomElement()!
+            ))
         }
     }
 }
 
-struct FloatingText: Identifiable {
-    let id: UUID
-    let amount: Double
-    var x: CGFloat
-    var y: CGFloat
-    var opacity: Double
+struct ClickParticle: Identifiable {
+    let id = UUID()
+    let spawnTime: Double
+    let lifetime: Double
+    let startX: Double
+    let startY: Double
+    let vx: Double
+    let vy: Double
+    let size: Double
+    let color: Color
 }
 
 #Preview {

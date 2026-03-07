@@ -15,6 +15,7 @@ The browser game (React/Vite) must NOT be modified — it stays as-is for laptop
 6. **Test on simulator** each sprint. The app must build and run at the end of every sprint.
 7. **Keep it native.** SwiftUI views, SF Symbols, haptics, SwiftData. No web views, no React Native.
 8. **Target iOS 17+.** Use modern SwiftUI APIs (Observable, NavigationStack, etc.).
+9. **Write tests every sprint.** Each sprint must include unit tests for new logic (engine, formulas, state transitions) and snapshot/UI tests where applicable. Testing is critical to keep everything correct as the game grows.
 
 ---
 

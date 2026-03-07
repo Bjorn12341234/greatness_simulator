@@ -3,9 +3,9 @@ import SwiftUI
 struct TickerView: View {
     @Environment(GameState.self) private var game
     @Environment(\.theme) private var theme
-    @State private var offset: CGFloat = 0
     @State private var textWidth: CGFloat = 0
     @State private var containerWidth: CGFloat = 0
+    @State private var startTime: Date = .now
 
     private var headlines: [String] {
         guard !game.eventHistory.isEmpty else { return [] }
@@ -23,90 +23,82 @@ struct TickerView: View {
     }
 
     var body: some View {
-        guard !headlines.isEmpty else { return AnyView(EmptyView()) }
-
-        return AnyView(
+        if headlines.isEmpty {
+            EmptyView()
+        } else {
             GeometryReader { geo in
-                let text = tickerText
-                let _ = updateContainerWidth(geo.size.width)
+                let _ = DispatchQueue.main.async {
+                    if containerWidth != geo.size.width { containerWidth = geo.size.width }
+                }
 
-                ZStack {
-                    // Measure text width
-                    Text(text)
-                        .font(.system(size: 12, weight: .medium))
+                ZStack(alignment: .leading) {
+                    // Hidden text to measure width
+                    Text(tickerText)
+                        .font(.system(size: 11, weight: .medium))
                         .fixedSize()
                         .hidden()
                         .background(
                             GeometryReader { textGeo in
-                                Color.clear.preference(key: TextWidthKey.self, value: textGeo.size.width)
+                                Color.clear.onAppear {
+                                    textWidth = textGeo.size.width
+                                    startTime = .now
+                                }
+                                .onChange(of: textGeo.size.width) { _, newWidth in
+                                    textWidth = newWidth
+                                    startTime = .now
+                                }
                             }
                         )
 
-                    // Two copies for seamless scrolling
-                    HStack(spacing: 60) {
-                        Text(text)
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(theme.text.opacity(0.9))
-                            .fixedSize()
+                    // Scrolling text driven by TimelineView
+                    if textWidth > 0 && containerWidth > 0 {
+                        TimelineView(.animation) { timeline in
+                            let elapsed = timeline.date.timeIntervalSince(startTime)
+                            let speed: CGFloat = 40 // points per second
+                            let totalSpan = textWidth + 60 + containerWidth
+                            let rawOffset = elapsed * speed
+                            let cycleOffset = rawOffset.truncatingRemainder(dividingBy: totalSpan)
+                            let x = containerWidth - cycleOffset
 
-                        Text(text)
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(theme.text.opacity(0.9))
-                            .fixedSize()
+                            HStack(spacing: 60) {
+                                Text(tickerText)
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundStyle(theme.text.opacity(0.9))
+                                    .fixedSize()
+
+                                Text(tickerText)
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundStyle(theme.text.opacity(0.9))
+                                    .fixedSize()
+                            }
+                            .offset(x: x)
+                        }
                     }
-                    .offset(x: offset)
                 }
-                .frame(width: geo.size.width, height: 28, alignment: .leading)
+                .frame(width: geo.size.width, height: 22, alignment: .leading)
                 .clipped()
             }
-            .frame(height: 28)
+            .frame(height: 22)
             .background(
                 LinearGradient(
                     colors: [
-                        theme.accent.opacity(0.15),
-                        theme.accent.opacity(0.08),
-                        theme.accent.opacity(0.15),
+                        theme.accent.opacity(0.12),
+                        theme.accent.opacity(0.06),
+                        theme.accent.opacity(0.12),
                     ],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
             .overlay(alignment: .top) {
-                Rectangle().fill(theme.accent.opacity(0.2)).frame(height: 1)
+                Rectangle().fill(theme.accent.opacity(0.15)).frame(height: 0.5)
             }
             .overlay(alignment: .bottom) {
-                Rectangle().fill(theme.accent.opacity(0.2)).frame(height: 1)
-            }
-            .onPreferenceChange(TextWidthKey.self) { width in
-                textWidth = width
-                startAnimation()
+                Rectangle().fill(theme.accent.opacity(0.15)).frame(height: 0.5)
             }
             .onChange(of: game.eventHistory.count) {
-                startAnimation()
+                startTime = .now
             }
-        )
-    }
-
-    private func updateContainerWidth(_ width: CGFloat) -> Bool {
-        if containerWidth != width {
-            DispatchQueue.main.async { containerWidth = width }
         }
-        return true
-    }
-
-    private func startAnimation() {
-        guard textWidth > 0 else { return }
-        let totalWidth = textWidth + 60
-        offset = containerWidth
-        withAnimation(.linear(duration: 20).repeatForever(autoreverses: false)) {
-            offset = -totalWidth
-        }
-    }
-}
-
-private struct TextWidthKey: PreferenceKey {
-    static let defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
     }
 }

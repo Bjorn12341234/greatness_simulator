@@ -50,54 +50,55 @@ struct MainView: View {
     }
 
     var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                phaseHeader
-                resourceBar
-                TickerView()
-                    .environment(\.theme, theme)
+        VStack(spacing: 0) {
+            phaseHeader
+            resourceBar
+            TickerView()
+                .environment(\.theme, theme)
 
-                Group {
-                    switch selectedTab {
-                    case .click:
-                        ClickerView()
-                    case .upgrades:
-                        UpgradeListView()
-                    case .control:
-                        ControlDashboardView()
-                    case .world:
-                        WorldDashboardView()
-                    case .space:
-                        SpaceView()
-                    case .cosmic:
-                        CosmicView()
-                    case .prestige:
-                        PrestigeView()
-                    case .settings:
-                        SettingsView()
+            Group {
+                switch selectedTab {
+                case .click:
+                    ClickerView()
+                case .upgrades:
+                    UpgradeListView()
+                case .control:
+                    ControlDashboardView()
+                case .world:
+                    WorldDashboardView()
+                case .space:
+                    SpaceView()
+                case .cosmic:
+                    CosmicView()
+                case .prestige:
+                    PrestigeView()
+                case .settings:
+                    SettingsView()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            tabBar
+        }
+        .background(theme.background.ignoresSafeArea())
+        .overlay {
+            ZStack {
+                if let event = game.activeEvent {
+                    EventModalView(event: event) {}
+                        .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                }
+
+                if let from = game.pendingTransitionFrom, let to = game.pendingTransitionTo {
+                    PhaseTransitionView(fromPhase: from, toPhase: to) {
+                        game.completePhaseTransition(to: to)
                     }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                tabBar
-            }
-
-            if let event = game.activeEvent {
-                EventModalView(event: event) {}
-                    .transition(.opacity.combined(with: .scale(scale: 0.9)))
-            }
-
-            if let from = game.pendingTransitionFrom, let to = game.pendingTransitionTo {
-                PhaseTransitionView(fromPhase: from, toPhase: to) {
-                    game.completePhaseTransition(to: to)
+                if game.universe.endingTriggered && !game.universe.endingComplete {
+                    EndingView()
                 }
             }
-
-            if game.universe.endingTriggered && !game.universe.endingComplete {
-                EndingView()
-            }
         }
-        .background(theme.background)
         .environment(\.theme, theme)
         .onChange(of: game.pendingAchievementToasts) { _, newToasts in
             for toastId in newToasts {
@@ -148,26 +149,22 @@ struct MainView: View {
     // MARK: - Phase Header
 
     private var phaseHeader: some View {
-        VStack(spacing: 4) {
-            Text("GREATNESS SIMULATOR")
-                .font(.caption)
-                .fontWeight(.bold)
-                .tracking(3)
-                .foregroundStyle(pColors.headerAccent)
-
-            Text("Phase \(game.phase.rawValue): \(game.phase.title)")
-                .font(.headline)
-                .foregroundStyle(theme.text)
+        HStack {
+            Text("GREATNESS")
+                .font(.system(size: 16, weight: .black))
+                .tracking(2)
+                .foregroundStyle(.orange)
+            Spacer()
+            Text("Phase \(game.phase.rawValue)")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(.white.opacity(0.8))
         }
-        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
         .frame(maxWidth: .infinity)
-        .background(
-            LinearGradient(
-                colors: [theme.headerTop, theme.headerBottom],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        )
+        .background {
+            Color(white: 0.13).ignoresSafeArea(edges: .top)
+        }
     }
 
     // MARK: - Resource Bar
@@ -209,22 +206,17 @@ struct MainView: View {
             }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.vertical, 4)
         .background(theme.surface)
     }
 
     private func resourcePill(icon: String, label: String, value: Double, color: Color) -> some View {
-        VStack(spacing: 2) {
-            HStack(spacing: 4) {
-                Image(systemName: icon)
-                    .font(.caption2)
-                    .foregroundStyle(color)
-                Text(label)
-                    .font(.caption2)
-                    .foregroundStyle(theme.textSecondary)
-            }
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 9))
+                .foregroundStyle(color)
             Text(Fmt.compact(value))
-                .font(.subheadline)
+                .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundStyle(color)
                 .contentTransition(.numericText())
@@ -248,12 +240,12 @@ struct MainView: View {
                     }
                     Haptics.light()
                 } label: {
-                    VStack(spacing: 2) {
+                    VStack(spacing: 1) {
                         Image(systemName: tab.icon)
-                            .font(.title3)
+                            .font(.callout)
                             .symbolEffect(.bounce, value: selectedTab == tab)
                         Text(tab.rawValue)
-                            .font(.caption2)
+                            .font(.system(size: 9))
                     }
                     .foregroundStyle(selectedTab == tab ? theme.accent : theme.textSecondary)
                     .frame(maxWidth: .infinity)
@@ -261,8 +253,10 @@ struct MainView: View {
                 .buttonStyle(.plain)
             }
         }
-        .padding(.vertical, 8)
-        .background(theme.tabBarBg)
+        .padding(.vertical, 5)
+        .background {
+            theme.tabBarBg.ignoresSafeArea(edges: .bottom)
+        }
     }
 }
 

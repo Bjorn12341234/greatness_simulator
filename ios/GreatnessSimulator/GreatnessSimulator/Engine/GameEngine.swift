@@ -4,7 +4,7 @@ struct GameEngine {
 
     // MARK: - Tick (called every 100ms)
 
-    static func tick(state: GameState, now: Double) {
+    @MainActor static func tick(state: GameState, now: Double) {
         let dt = now - state.lastTickAt
         guard dt > 0, dt < 10 else {
             // Clamp: skip ticks > 10s (handle offline separately)
@@ -105,7 +105,7 @@ struct GameEngine {
 
     // MARK: - Achievement Tick Counter
 
-    private static var tickCounter: Int = 0
+    nonisolated(unsafe) private static var tickCounter: Int = 0
 
     // MARK: - Event Pool
 

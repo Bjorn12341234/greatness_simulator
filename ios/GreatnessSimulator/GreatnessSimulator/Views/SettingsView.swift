@@ -7,6 +7,7 @@ struct SettingsView: View {
     @State private var showContradictions = false
     @State private var showResetConfirmation = false
     @State private var showExportAlert = false
+    @State private var showPrivacyPolicy = false
 
     var body: some View {
         @Bindable var game = game
@@ -161,6 +162,18 @@ struct SettingsView: View {
                 }
                 .buttonStyle(.plain)
 
+                // MARK: - About
+                sectionHeader("About")
+
+                settingsRow(icon: "info.circle", iconColor: theme.attentionColor, title: "Version", detail: appVersion)
+
+                Button {
+                    showPrivacyPolicy = true
+                } label: {
+                    settingsRow(icon: "hand.raised.fill", iconColor: theme.accent, title: "Privacy Policy", detail: nil)
+                }
+                .buttonStyle(.plain)
+
                 Spacer(minLength: 40)
             }
             .padding()
@@ -184,6 +197,9 @@ struct SettingsView: View {
                     }
             }
         }
+        .sheet(isPresented: $showPrivacyPolicy) {
+            PrivacyPolicyView()
+        }
         .alert("Save Complete", isPresented: $showExportAlert) {
             Button("OK") {}
         }
@@ -198,6 +214,12 @@ struct SettingsView: View {
     }
 
     // MARK: - Helpers
+
+    private var appVersion: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+        return "\(version) (\(build))"
+    }
 
     private func sectionHeader(_ title: String) -> some View {
         HStack {

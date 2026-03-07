@@ -141,7 +141,11 @@ struct MainView: View {
         }
         .onChange(of: game.activeEvent?.id) { oldId, newId in
             if oldId == nil && newId != nil {
-                AudioEngine.shared.playEvent()
+                if let category = game.activeEvent?.category {
+                    AudioEngine.shared.playEventByCategory(category)
+                } else {
+                    AudioEngine.shared.playEvent()
+                }
             }
         }
         .onChange(of: game.settings.sfxVolume) { _, new in

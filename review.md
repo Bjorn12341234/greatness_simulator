@@ -145,14 +145,14 @@ Fair is fair — some things are genuinely better on iOS:
 
 ### Should-fix for engagement:
 4. ~~**Cinematic phase transitions** — Multi-screen staggered text with audio, not a modal~~ DONE
-5. **Event modal polish** — Category color coding, backdrop blur, spring animations
-6. **Animated ticker** — Scrolling cable-news style instead of static list
-7. **Ending sequence** — Full cinematic treatment (the current browser ending is genuinely memorable)
+5. ~~**Event modal polish** — Category color coding, backdrop blur, spring animations~~ DONE
+6. ~~**Animated ticker** — Scrolling cable-news style instead of static list~~ DONE (was already implemented)
+7. ~~**Ending sequence** — Full cinematic treatment (the current browser ending is genuinely memorable)~~ DONE
 
 ### Nice-to-have for polish:
-8. **Selectable themes** — Let players choose warroom/void/terminal etc.
-9. **Richer audio** — Category-specific event sounds (alarm for scandal, ding for opportunity)
-10. **Smoother number animations** — Rolling counters for resource displays
+8. ~~**Selectable themes** — Let players choose warroom/void/terminal etc.~~ DONE (was already implemented)
+9. ~~**Richer audio** — Category-specific event sounds (alarm for scandal, ding for opportunity)~~ DONE
+10. ~~**Smoother number animations** — Rolling counters for resource displays~~ DONE (uses SwiftUI .contentTransition(.numericText()))
 
 ---
 

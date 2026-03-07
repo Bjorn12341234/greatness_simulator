@@ -1,12 +1,30 @@
 import SwiftUI
 
+struct FloatingParticle: Identifiable {
+    let id = UUID()
+    let x: CGFloat
+    let size: CGFloat
+    let duration: Double
+    let delay: Double
+}
+
 struct EndingView: View {
     @Environment(GameState.self) private var game
     @State private var currentScreen = 0
     @State private var lineOpacities: [Double] = [0, 0, 0, 0]
     @State private var visible = true
+    @State private var particlesActive = false
 
     private let cosmicAccent = Color(red: 0.6, green: 0.2, blue: 1.0)
+
+    private let particles: [FloatingParticle] = (0..<20).map { _ in
+        FloatingParticle(
+            x: CGFloat.random(in: 0...1),
+            size: CGFloat.random(in: 2...6),
+            duration: Double.random(in: 3...6),
+            delay: Double.random(in: 0...3)
+        )
+    }
 
     var body: some View {
         if visible {
@@ -20,6 +38,29 @@ struct EndingView: View {
                 )
                 .ignoresSafeArea()
 
+                // Floating particles
+                GeometryReader { geo in
+                    ForEach(particles) { p in
+                        Circle()
+                            .fill(cosmicAccent.opacity(particlesActive ? 0.6 : 0))
+                            .frame(width: p.size, height: p.size)
+                            .position(
+                                x: p.x * geo.size.width,
+                                y: particlesActive
+                                    ? geo.size.height * CGFloat.random(in: 0.1...0.4)
+                                    : geo.size.height * 0.8
+                            )
+                            .scaleEffect(particlesActive ? 1.5 : 0)
+                            .animation(
+                                .easeOut(duration: p.duration)
+                                    .delay(p.delay)
+                                    .repeatForever(autoreverses: false),
+                                value: particlesActive
+                            )
+                    }
+                }
+                .allowsHitTesting(false)
+
                 // Content
                 VStack {
                     Spacer()
@@ -29,7 +70,10 @@ struct EndingView: View {
                 .padding(.horizontal, 32)
             }
             .transition(.opacity)
-            .onAppear { startSequence() }
+            .onAppear {
+                particlesActive = true
+                startSequence()
+            }
         }
     }
 

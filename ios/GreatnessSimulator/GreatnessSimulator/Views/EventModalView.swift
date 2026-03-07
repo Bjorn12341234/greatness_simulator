@@ -10,8 +10,11 @@ struct EventModalView: View {
 
     var body: some View {
         ZStack {
-            // Backdrop
-            Color.black.opacity(0.85)
+            // Backdrop — blurred + dark overlay
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .environment(\.colorScheme, .dark)
+                .overlay(Color.black.opacity(0.5))
                 .ignoresSafeArea()
                 .onTapGesture {} // block taps
 
@@ -51,6 +54,8 @@ struct EventModalView: View {
                         .strokeBorder(categoryColor.opacity(0.4), lineWidth: 1)
                 )
         )
+        .shadow(color: categoryColor.opacity(0.25), radius: 30)
+        .shadow(color: .black.opacity(0.5), radius: 20, y: 4)
     }
 
     private var categoryBadge: some View {

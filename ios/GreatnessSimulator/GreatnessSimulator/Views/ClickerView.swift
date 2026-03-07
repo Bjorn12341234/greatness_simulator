@@ -6,66 +6,83 @@ struct ClickerView: View {
     @State private var buttonScale: CGFloat = 1.0
     @State private var glowPulse: CGFloat = 1.0
     @State private var particles: [ClickParticle] = []
+    @State private var buttonFrame: CGRect = .zero
 
     var body: some View {
         ZStack {
-            VStack(spacing: 24) {
-                Spacer()
-
-                if game.greatnessPerSecond > 0 {
-                    Text("\(Fmt.compact(game.greatnessPerSecond)) GpS")
-                        .font(.subheadline)
-                        .foregroundStyle(theme.greatnessColor.opacity(0.7))
-                        .contentTransition(.numericText())
-                }
-
-                Button(action: handleClick) {
-                    ZStack {
-                        Circle()
-                            .fill(
-                                RadialGradient(
-                                    colors: [theme.accent.opacity(0.2), theme.accent.opacity(0.05), .clear],
-                                    center: .center,
-                                    startRadius: 20,
-                                    endRadius: 90
-                                )
-                            )
-                            .frame(width: 180, height: 180)
-                            .scaleEffect(glowPulse)
-
-                        Circle()
-                            .strokeBorder(theme.accent.opacity(0.3), lineWidth: 1)
-                            .frame(width: 150, height: 150)
-
-                        Circle()
-                            .strokeBorder(theme.accent, lineWidth: 2)
-                            .frame(width: 160, height: 160)
-
-                        VStack(spacing: 4) {
-                            Text("GENERATE")
-                                .font(.headline)
-                                .fontWeight(.bold)
-                            Text("ATTENTION")
-                                .font(.headline)
-                                .fontWeight(.bold)
-                        }
-                        .foregroundStyle(theme.accent)
+            ScrollView {
+                VStack(spacing: 16) {
+                    // GpS display
+                    if game.greatnessPerSecond > 0 {
+                        Text("\(Fmt.compact(game.greatnessPerSecond)) GpS")
+                            .font(.subheadline)
+                            .foregroundStyle(theme.greatnessColor.opacity(0.7))
+                            .contentTransition(.numericText())
+                            .padding(.top, 8)
                     }
+
+                    // Click button
+                    Button(action: handleClick) {
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    RadialGradient(
+                                        colors: [theme.accent.opacity(0.2), theme.accent.opacity(0.05), .clear],
+                                        center: .center,
+                                        startRadius: 20,
+                                        endRadius: 80
+                                    )
+                                )
+                                .frame(width: 160, height: 160)
+                                .scaleEffect(glowPulse)
+
+                            Circle()
+                                .strokeBorder(theme.accent.opacity(0.3), lineWidth: 1)
+                                .frame(width: 130, height: 130)
+
+                            Circle()
+                                .strokeBorder(theme.accent, lineWidth: 2)
+                                .frame(width: 140, height: 140)
+
+                            VStack(spacing: 3) {
+                                Text("GENERATE")
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                                Text("ATTENTION")
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                            }
+                            .foregroundStyle(theme.accent)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .scaleEffect(buttonScale)
+                    .background(
+                        GeometryReader { geo in
+                            Color.clear.onAppear {
+                                buttonFrame = geo.frame(in: .global)
+                            }.onChange(of: geo.frame(in: .global)) { _, newFrame in
+                                buttonFrame = newFrame
+                            }
+                        }
+                    )
+
+                    // Click stats
+                    HStack(spacing: 16) {
+                        Text("+\(Fmt.number(game.attentionPerClick)) per tap")
+                            .font(.caption)
+                            .foregroundStyle(theme.attentionColor.opacity(0.7))
+                        Text("\(Fmt.compact(Double(game.clickCount))) taps")
+                            .font(.caption)
+                            .foregroundStyle(theme.textSecondary)
+                    }
+
+                    // Upgrades section
+                    UpgradeListContent()
+                        .padding(.top, 4)
                 }
-                .buttonStyle(.plain)
-                .scaleEffect(buttonScale)
-
-                VStack(spacing: 4) {
-                    Text("+\(Fmt.number(game.attentionPerClick)) attention per tap")
-                        .font(.caption)
-                        .foregroundStyle(theme.attentionColor.opacity(0.7))
-
-                    Text("\(Fmt.compact(Double(game.clickCount))) taps total")
-                        .font(.caption2)
-                        .foregroundStyle(theme.textSecondary)
-                }
-
-                Spacer()
+                .padding(.horizontal, 16)
+                .padding(.bottom, 12)
             }
 
             // Particle overlay
@@ -79,7 +96,7 @@ struct ClickerView: View {
                         let alpha = 1.0 - progress
 
                         let x = p.startX + p.vx * elapsed
-                        let y = p.startY + p.vy * elapsed + 40 * elapsed * elapsed // gravity
+                        let y = p.startY + p.vy * elapsed + 40 * elapsed * elapsed
 
                         let radius = p.size * (1.0 - progress * 0.5)
                         let rect = CGRect(x: x - radius, y: y - radius, width: radius * 2, height: radius * 2)
@@ -125,13 +142,12 @@ struct ClickerView: View {
     ]
 
     private func emitParticles() {
-        let cx = UIScreen.main.bounds.width / 2
-        let cy = UIScreen.main.bounds.height / 2 - 20
+        let cx = buttonFrame.midX
+        let cy = buttonFrame.midY
         let now = Date().timeIntervalSinceReferenceDate
-        let count = 12
 
-        for i in 0..<count {
-            let angle = (Double.pi * 2 * Double(i)) / Double(count) + Double.random(in: -0.25...0.25)
+        for i in 0..<12 {
+            let angle = (Double.pi * 2 * Double(i)) / 12.0 + Double.random(in: -0.25...0.25)
             let speed = Double.random(in: 80...200)
             particles.append(ClickParticle(
                 spawnTime: now,

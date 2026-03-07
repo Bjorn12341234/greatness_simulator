@@ -18,20 +18,44 @@ struct UpgradeListView: View {
 
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 16) {
-                if visibleUpgrades.isEmpty {
-                    Text("Keep generating attention to unlock upgrades...")
-                        .font(.callout)
-                        .foregroundStyle(theme.textSecondary)
-                        .padding(.top, 60)
-                } else {
-                    ForEach(treeOrder, id: \.self) { tree in
-                        treeSection(tree)
-                    }
+            UpgradeListContent()
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+        }
+    }
+
+}
+
+// MARK: - Upgrade List Content (reusable without ScrollView)
+
+struct UpgradeListContent: View {
+    @Environment(GameState.self) private var game
+    @Environment(\.theme) private var theme
+
+    private var visibleUpgrades: [UpgradeData] {
+        phase1Upgrades.filter { game.isUpgradeVisible($0) }
+    }
+
+    private var treeOrder: [String] {
+        var seen: [String] = []
+        for u in visibleUpgrades where !seen.contains(u.tree) {
+            seen.append(u.tree)
+        }
+        return seen
+    }
+
+    var body: some View {
+        LazyVStack(spacing: 16) {
+            if visibleUpgrades.isEmpty {
+                Text("Keep generating attention to unlock upgrades...")
+                    .font(.callout)
+                    .foregroundStyle(theme.textSecondary)
+                    .padding(.top, 40)
+            } else {
+                ForEach(treeOrder, id: \.self) { tree in
+                    treeSection(tree)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
         }
     }
 

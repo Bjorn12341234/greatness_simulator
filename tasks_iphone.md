@@ -174,6 +174,35 @@ The browser game (React/Vite) must NOT be modified — it stays as-is for laptop
 
 ---
 
+## Lessons Learned
+
+### The Full-Screen Disaster (Sprint 13)
+
+Claude spent **5 sessions over several hours** failing to make the app fill the iPhone screen.
+The AI kept trying SwiftUI fixes (`.ignoresSafeArea()`, UIKit window backgrounds, UIViewRepresentable
+hacks, GeometryReader workarounds, etc.) — none of which could ever work because the problem
+was not in SwiftUI at all.
+
+**Root cause:** The generated Info.plist had no `UILaunchScreen` dictionary. Without it, iOS
+runs the app in compatibility/letterbox mode at a physically smaller viewport. It was a single
+missing plist key.
+
+**Why Claude failed:** It never questioned the assumption that this was a SwiftUI layout problem.
+It kept iterating on SwiftUI modifiers in the same loop across all sessions. It also didn't notice
+that xcodebuild was outputting to DerivedData while it was installing from a stale `build/` directory,
+giving false negatives even after the fix was applied.
+
+**How it was solved:** The user told Claude to stop looping and instead look at other working
+iOS projects (forest, tourbuddy, hnefatafl). Comparing their pbxproj and Info.plist files
+immediately revealed the missing `UILaunchScreen` key. Fix took 5 minutes once the right
+approach was used.
+
+**Takeaway:** When something fundamental isn't working and you've tried many variations of the
+same approach, stop. Look at working examples. The problem is probably at a different layer
+than you think.
+
+---
+
 ## Progress Log
 
 | Sprint | Status | Date | Notes |

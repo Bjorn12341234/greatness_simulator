@@ -2,6 +2,7 @@ import SwiftUI
 
 @main
 struct GreatnessSimulatorApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var gameState: GameState
     @State private var gameTimer: Timer?
     @State private var autoSaveTimer: Timer?
@@ -22,6 +23,7 @@ struct GreatnessSimulatorApp: App {
                 MainView()
                     .environment(gameState)
                     .preferredColorScheme(.dark)
+                    .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
                     .onAppear { onAppLaunch() }
 
                 if showOfflineReturn, let result = offlineResult {
@@ -43,7 +45,6 @@ struct GreatnessSimulatorApp: App {
     }
 
     private func onAppLaunch() {
-        // Calculate offline progress if returning
         if let result = OfflineEngine.calculate(state: gameState) {
             OfflineEngine.apply(result: result, to: gameState)
             if result.greatnessGained > 0 || result.cashGained > 0 || result.attentionGained > 0 {
@@ -89,5 +90,13 @@ struct GreatnessSimulatorApp: App {
                 _ = SaveEngine.save(state: state)
             }
         }
+    }
+}
+
+// MARK: - Portrait Lock
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+        return .portrait
     }
 }

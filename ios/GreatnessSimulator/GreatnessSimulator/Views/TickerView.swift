@@ -2,6 +2,7 @@ import SwiftUI
 
 struct TickerView: View {
     @Environment(GameState.self) private var game
+    @Environment(\.theme) private var theme
     @State private var offset: CGFloat = 0
     @State private var textWidth: CGFloat = 0
     @State private var containerWidth: CGFloat = 0
@@ -45,12 +46,12 @@ struct TickerView: View {
                     HStack(spacing: 60) {
                         Text(text)
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.9))
+                            .foregroundStyle(theme.text.opacity(0.9))
                             .fixedSize()
 
                         Text(text)
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.9))
+                            .foregroundStyle(theme.text.opacity(0.9))
                             .fixedSize()
                     }
                     .offset(x: offset)
@@ -62,19 +63,19 @@ struct TickerView: View {
             .background(
                 LinearGradient(
                     colors: [
-                        Color.orange.opacity(0.15),
-                        Color.red.opacity(0.1),
-                        Color.orange.opacity(0.15),
+                        theme.accent.opacity(0.15),
+                        theme.accent.opacity(0.08),
+                        theme.accent.opacity(0.15),
                     ],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
             .overlay(alignment: .top) {
-                Rectangle().fill(Color.orange.opacity(0.2)).frame(height: 1)
+                Rectangle().fill(theme.accent.opacity(0.2)).frame(height: 1)
             }
             .overlay(alignment: .bottom) {
-                Rectangle().fill(Color.orange.opacity(0.2)).frame(height: 1)
+                Rectangle().fill(theme.accent.opacity(0.2)).frame(height: 1)
             }
             .onPreferenceChange(TextWidthKey.self) { width in
                 textWidth = width

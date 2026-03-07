@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(GameState.self) private var game
+    @Environment(\.theme) private var theme
     @State private var showAchievements = false
     @State private var showContradictions = false
     @State private var showResetConfirmation = false
@@ -16,16 +17,14 @@ struct SettingsView: View {
                 // MARK: - Meta Systems
                 sectionHeader("Meta Systems")
 
-                // Achievements button
                 Button {
                     showAchievements = true
                 } label: {
-                    settingsRow(icon: "trophy.fill", iconColor: .yellow, title: "Achievements",
+                    settingsRow(icon: "trophy.fill", iconColor: theme.greatnessColor, title: "Achievements",
                                 detail: "\(game.achievements.values.filter { $0 }.count)/\(allAchievements.count)")
                 }
                 .buttonStyle(.plain)
 
-                // Contradictions button
                 Button {
                     showContradictions = true
                 } label: {
@@ -40,41 +39,41 @@ struct SettingsView: View {
                 VStack(spacing: 4) {
                     HStack {
                         Image(systemName: "speaker.wave.3.fill")
-                            .foregroundStyle(.cyan)
+                            .foregroundStyle(theme.attentionColor)
                             .frame(width: 24)
                         Text("Sound Effects")
                             .font(.subheadline)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(theme.text)
                         Spacer()
                         Text("\(Int(game.settings.sfxVolume * 100))%")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(theme.textSecondary)
                     }
                     Slider(value: $game.settings.sfxVolume, in: 0...1, step: 0.1)
-                        .tint(.cyan)
+                        .tint(theme.accent)
                 }
                 .padding(12)
-                .background(Color(white: 0.08))
+                .background(theme.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
 
                 VStack(spacing: 4) {
                     HStack {
                         Image(systemName: "music.note")
-                            .foregroundStyle(.cyan)
+                            .foregroundStyle(theme.attentionColor)
                             .frame(width: 24)
                         Text("Music")
                             .font(.subheadline)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(theme.text)
                         Spacer()
                         Text("\(Int(game.settings.musicVolume * 100))%")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(theme.textSecondary)
                     }
                     Slider(value: $game.settings.musicVolume, in: 0...1, step: 0.1)
-                        .tint(.cyan)
+                        .tint(theme.accent)
                 }
                 .padding(12)
-                .background(Color(white: 0.08))
+                .background(theme.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
 
                 // MARK: - Notifications
@@ -83,37 +82,54 @@ struct SettingsView: View {
                 Toggle(isOn: $game.settings.notificationsEnabled) {
                     HStack {
                         Image(systemName: "bell.fill")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(theme.accent)
                             .frame(width: 24)
                         Text("Notifications")
                             .font(.subheadline)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(theme.text)
                     }
                 }
-                .tint(.orange)
+                .tint(theme.accent)
                 .padding(12)
-                .background(Color(white: 0.08))
+                .background(theme.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
 
                 // MARK: - Theme
                 sectionHeader("Theme")
 
-                let themes = ["default", "gold", "warroom", "void", "terminal"]
+                let themeNames = ["default", "gold", "warroom", "void", "terminal"]
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 90))], spacing: 8) {
-                    ForEach(themes, id: \.self) { theme in
+                    ForEach(themeNames, id: \.self) { themeName in
+                        let t = resolveTheme(name: themeName)
+                        let isSelected = game.settings.theme == themeName
                         Button {
-                            game.settings.theme = theme
+                            withAnimation(.spring(duration: 0.3)) {
+                                game.settings.theme = themeName
+                            }
                         } label: {
-                            Text(theme.capitalized)
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(game.settings.theme == theme ? .black : .white)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 10)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(game.settings.theme == theme ? Color.orange : Color(white: 0.12))
-                                )
+                            VStack(spacing: 6) {
+                                // Color preview swatch
+                                HStack(spacing: 3) {
+                                    Circle().fill(t.accent).frame(width: 10, height: 10)
+                                    Circle().fill(t.greatnessColor).frame(width: 10, height: 10)
+                                    Circle().fill(t.cashColor).frame(width: 10, height: 10)
+                                    Circle().fill(t.attentionColor).frame(width: 10, height: 10)
+                                }
+                                Text(themeName.capitalized)
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(isSelected ? t.background : t.text)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(isSelected ? t.accent : t.surface)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .strokeBorder(isSelected ? t.accent : t.surfaceHighlight, lineWidth: 1)
+                            )
                         }
                         .buttonStyle(.plain)
                     }
@@ -134,7 +150,7 @@ struct SettingsView: View {
                     _ = SaveEngine.save(state: game)
                     showExportAlert = true
                 } label: {
-                    settingsRow(icon: "square.and.arrow.down", iconColor: .green, title: "Save Now", detail: nil)
+                    settingsRow(icon: "square.and.arrow.down", iconColor: theme.cashColor, title: "Save Now", detail: nil)
                 }
                 .buttonStyle(.plain)
 
@@ -149,7 +165,7 @@ struct SettingsView: View {
             }
             .padding()
         }
-        .background(Color.black)
+        .background(theme.background)
         .sheet(isPresented: $showAchievements) {
             AchievementPanelView()
                 .environment(game)
@@ -163,7 +179,7 @@ struct SettingsView: View {
                     .toolbar {
                         ToolbarItem(placement: .topBarTrailing) {
                             Button("Done") { showContradictions = false }
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(theme.accent)
                         }
                     }
             }
@@ -189,7 +205,7 @@ struct SettingsView: View {
                 .font(.caption)
                 .fontWeight(.bold)
                 .tracking(1.5)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(theme.textSecondary)
             Spacer()
         }
     }
@@ -201,19 +217,19 @@ struct SettingsView: View {
                 .frame(width: 24)
             Text(title)
                 .font(.subheadline)
-                .foregroundStyle(.white)
+                .foregroundStyle(theme.text)
             Spacer()
             if let detail {
                 Text(detail)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(theme.textSecondary)
             }
             Image(systemName: "chevron.right")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(theme.textSecondary)
         }
         .padding(12)
-        .background(Color(white: 0.08))
+        .background(theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
@@ -221,15 +237,15 @@ struct SettingsView: View {
         HStack {
             Text(label)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(theme.textSecondary)
             Spacer()
             Text(value)
                 .font(.subheadline)
                 .fontWeight(.medium)
-                .foregroundStyle(.white)
+                .foregroundStyle(theme.text)
         }
         .padding(12)
-        .background(Color(white: 0.08))
+        .background(theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
@@ -242,7 +258,6 @@ struct SettingsView: View {
 
     private func resetGame() {
         let fresh = GameState()
-        // Copy all properties from fresh state
         game.phase = fresh.phase
         game.greatness = 0
         game.greatnessPerSecond = 0

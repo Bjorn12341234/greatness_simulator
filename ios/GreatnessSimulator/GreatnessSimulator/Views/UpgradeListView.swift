@@ -2,6 +2,7 @@ import SwiftUI
 
 struct UpgradeListView: View {
     @Environment(GameState.self) private var game
+    @Environment(\.theme) private var theme
 
     private var visibleUpgrades: [UpgradeData] {
         phase1Upgrades.filter { game.isUpgradeVisible($0) }
@@ -21,7 +22,7 @@ struct UpgradeListView: View {
                 if visibleUpgrades.isEmpty {
                     Text("Keep generating attention to unlock upgrades...")
                         .font(.callout)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(theme.textSecondary)
                         .padding(.top, 60)
                 } else {
                     ForEach(treeOrder, id: \.self) { tree in
@@ -41,7 +42,7 @@ struct UpgradeListView: View {
                 .font(.caption)
                 .fontWeight(.bold)
                 .tracking(1.5)
-                .foregroundStyle(.orange.opacity(0.7))
+                .foregroundStyle(theme.accent.opacity(0.7))
                 .padding(.leading, 4)
 
             ForEach(visibleUpgrades.filter { $0.tree == tree }) { upgrade in
@@ -55,9 +56,11 @@ struct UpgradeListView: View {
 
 struct UpgradeCard: View {
     @Environment(GameState.self) private var game
+    @Environment(\.theme) private var theme
     let data: UpgradeData
 
     @State private var showPurchaseFlash = false
+    @State private var cardScale: CGFloat = 1.0
 
     private var state: UpgradeState {
         game.upgrades[data.id] ?? UpgradeState()
@@ -85,9 +88,9 @@ struct UpgradeCard: View {
 
     private var costColor: Color {
         switch data.costResource {
-        case .attention: return .cyan
-        case .cash: return .green
-        case .greatness: return .yellow
+        case .attention: return theme.attentionColor
+        case .cash: return theme.cashColor
+        case .greatness: return theme.greatnessColor
         }
     }
 
@@ -98,6 +101,7 @@ struct UpgradeCard: View {
         .buttonStyle(.plain)
         .disabled(isMaxed || !isAffordable)
         .opacity(isMaxed ? 0.6 : 1)
+        .scaleEffect(cardScale)
         .animation(.easeOut(duration: 0.15), value: isAffordable)
     }
 
@@ -114,7 +118,7 @@ struct UpgradeCard: View {
     }
 
     private var iconView: some View {
-        let color: Color = isMaxed ? .green : (isAffordable ? .orange : .gray)
+        let color: Color = isMaxed ? .green : (isAffordable ? theme.accent : .gray)
         return Image(systemName: data.icon)
             .font(.title2)
             .foregroundStyle(color)
@@ -127,18 +131,18 @@ struct UpgradeCard: View {
                 Text(data.name)
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(isMaxed ? Color.green : Color.white)
+                    .foregroundStyle(isMaxed ? Color.green : theme.text)
 
                 if data.maxCount > 1 {
                     Text("\(state.count)/\(data.maxCount)")
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(theme.textSecondary)
                 }
             }
 
             Text(data.description)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(theme.textSecondary)
                 .lineLimit(2)
 
             effectsRow
@@ -150,12 +154,12 @@ struct UpgradeCard: View {
             if data.production > 0 {
                 Text("+\(Fmt.compact(data.production)) GpS")
                     .font(.caption2)
-                    .foregroundStyle(.yellow.opacity(0.8))
+                    .foregroundStyle(theme.greatnessColor.opacity(0.8))
             }
             ForEach(Array(data.effects.enumerated()), id: \.offset) { _, effect in
                 Text(effectLabel(effect))
                     .font(.caption2)
-                    .foregroundStyle(.cyan.opacity(0.8))
+                    .foregroundStyle(theme.attentionColor.opacity(0.8))
             }
         }
     }
@@ -173,16 +177,16 @@ struct UpgradeCard: View {
                     .foregroundStyle(isAffordable ? costColor : Color.gray)
                 Text(costLabel)
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(theme.textSecondary)
             }
         }
     }
 
     private var cardBackground: some View {
-        let bgOpacity: Double = isMaxed ? 0.03 : 0.06
+        let bgColor: Color = isMaxed ? theme.surface : theme.surfaceHighlight
         let borderColor: Color = (isAffordable && !isMaxed) ? costColor.opacity(0.4) : .clear
         return RoundedRectangle(cornerRadius: 12)
-            .fill(Color.white.opacity(bgOpacity))
+            .fill(bgColor)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .strokeBorder(borderColor, lineWidth: 1)
@@ -191,14 +195,23 @@ struct UpgradeCard: View {
 
     private var flashOverlay: some View {
         RoundedRectangle(cornerRadius: 12)
-            .fill(Color.orange.opacity(showPurchaseFlash ? 0.3 : 0))
+            .fill(theme.purchaseFlash.opacity(showPurchaseFlash ? 0.3 : 0))
     }
 
     private func handlePurchase() {
         guard game.purchaseUpgrade(id: data.id) else { return }
         Haptics.medium()
+        AudioEngine.shared.playPurchase()
 
-        // Flash animation
+        // Spring scale animation on purchase
+        withAnimation(.spring(duration: 0.15, bounce: 0.6)) {
+            cardScale = 1.06
+        }
+        withAnimation(.spring(duration: 0.3, bounce: 0.4).delay(0.15)) {
+            cardScale = 1.0
+        }
+
+        // Flash
         withAnimation(.easeIn(duration: 0.05)) {
             showPurchaseFlash = true
         }

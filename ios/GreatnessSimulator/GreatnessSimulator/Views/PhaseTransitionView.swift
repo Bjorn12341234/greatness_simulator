@@ -2,7 +2,7 @@ import SwiftUI
 
 struct TransitionLine {
     let text: String
-    let delay: Double   // seconds before showing
+    let delay: Double
     let style: TransitionLineStyle
 
     init(_ text: String, delay: Double, style: TransitionLineStyle = .normal) {
@@ -59,6 +59,8 @@ struct PhaseTransitionView: View {
 
     @State private var visibleLines: Int = 0
     @State private var fadeOut = false
+    @State private var glowScale: CGFloat = 0.5
+    @State private var glowOpacity: Double = 0
 
     private var script: [TransitionLine] {
         let key = "\(fromPhase.rawValue)_\(toPhase.rawValue)"
@@ -69,24 +71,31 @@ struct PhaseTransitionView: View {
 
     var body: some View {
         ZStack {
-            // Background
             Color.black.ignoresSafeArea()
 
-            // Radial glow
+            // Animated radial glow
             RadialGradient(
-                colors: [.orange.opacity(0.15), .clear],
+                colors: [.orange.opacity(0.2), .orange.opacity(0.05), .clear],
                 center: .center,
                 startRadius: 0,
                 endRadius: 300
             )
+            .scaleEffect(glowScale)
+            .opacity(glowOpacity)
             .ignoresSafeArea()
 
-            // Lines
             VStack(spacing: 16) {
                 ForEach(Array(script.enumerated()), id: \.offset) { index, line in
                     if index < visibleLines {
                         lineView(line)
-                            .transition(.opacity.combined(with: .move(edge: .bottom)))
+                            .transition(
+                                .asymmetric(
+                                    insertion: .opacity
+                                        .combined(with: .scale(scale: 0.8))
+                                        .combined(with: .offset(y: 20)),
+                                    removal: .opacity
+                                )
+                            )
                     }
                 }
             }
@@ -122,16 +131,24 @@ struct PhaseTransitionView: View {
     }
 
     private func startSequence() {
+        AudioEngine.shared.playPhaseTransition()
+
+        // Animate glow in
+        withAnimation(.easeOut(duration: 2.0)) {
+            glowScale = 1.5
+            glowOpacity = 1.0
+        }
+
         for (index, line) in script.enumerated() {
             DispatchQueue.main.asyncAfter(deadline: .now() + line.delay) {
-                withAnimation(.easeOut(duration: 0.6)) {
+                withAnimation(.spring(duration: 0.6, bounce: 0.3)) {
                     visibleLines = index + 1
                 }
                 if index == 0 { Haptics.heavy() }
+                if line.style == .accent { Haptics.medium() }
             }
         }
 
-        // Fade out and complete after last line + 3s
         let totalDuration = (script.last?.delay ?? 0) + 3
         DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration) {
             withAnimation(.easeIn(duration: 1.0)) {

@@ -25,7 +25,7 @@ struct EventModalView: View {
         .opacity(appeared ? 1 : 0)
         .scaleEffect(appeared ? 1 : 0.9)
         .onAppear {
-            withAnimation(.spring(duration: 0.4)) {
+            withAnimation(.spring(duration: 0.4, bounce: 0.3)) {
                 appeared = true
             }
         }

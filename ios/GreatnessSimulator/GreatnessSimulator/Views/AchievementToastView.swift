@@ -49,7 +49,10 @@ struct AchievementToastView: View {
                 .shadow(color: .yellow.opacity(0.15), radius: 10)
         )
         .onTapGesture { onDismiss() }
-        .transition(.move(edge: .top).combined(with: .opacity))
+        .transition(.asymmetric(
+            insertion: .move(edge: .top).combined(with: .opacity).combined(with: .scale(scale: 0.8)),
+            removal: .move(edge: .top).combined(with: .opacity)
+        ))
     }
 }
 
@@ -70,6 +73,6 @@ struct AchievementToastOverlay: View {
         .padding(.horizontal, 16)
         .padding(.top, 60)
         .allowsHitTesting(!toasts.isEmpty)
-        .animation(.spring(duration: 0.4), value: toasts.map(\.id))
+        .animation(.spring(duration: 0.4, bounce: 0.3), value: toasts.map(\.id))
     }
 }

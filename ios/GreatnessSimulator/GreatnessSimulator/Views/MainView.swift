@@ -39,20 +39,24 @@ struct MainView: View {
     @Environment(GameState.self) private var game
     @State private var selectedTab: GameTab = .click
     @State private var achievementToasts: [AchievementToast] = []
+    @State private var phaseAnimating = false
+
+    private var theme: GameTheme {
+        resolveTheme(name: game.settings.theme)
+    }
+
+    private var pColors: PhaseColors {
+        phaseColors[game.phase.rawValue] ?? phaseColors[1]!
+    }
 
     var body: some View {
         ZStack {
             VStack(spacing: 0) {
-                // Phase header
                 phaseHeader
-
-                // Resource bar
                 resourceBar
-
-                // Ticker
                 TickerView()
+                    .environment(\.theme, theme)
 
-                // Main content
                 Group {
                     switch selectedTab {
                     case .click:
@@ -75,40 +79,36 @@ struct MainView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                // Tab bar
                 tabBar
             }
 
-            // Event modal overlay
             if let event = game.activeEvent {
-                EventModalView(event: event) {
-                    // onDismiss — event already resolved in resolveEvent
-                }
+                EventModalView(event: event) {}
+                    .transition(.opacity.combined(with: .scale(scale: 0.9)))
             }
 
-            // Phase transition overlay
             if let from = game.pendingTransitionFrom, let to = game.pendingTransitionTo {
                 PhaseTransitionView(fromPhase: from, toPhase: to) {
                     game.completePhaseTransition(to: to)
                 }
             }
 
-            // Ending sequence overlay
             if game.universe.endingTriggered && !game.universe.endingComplete {
                 EndingView()
             }
         }
-        .background(Color.black)
+        .background(theme.background)
+        .environment(\.theme, theme)
         .onChange(of: game.pendingAchievementToasts) { _, newToasts in
             for toastId in newToasts {
                 if let def = achievementRegistry[toastId] {
-                    withAnimation {
+                    withAnimation(.spring(duration: 0.4, bounce: 0.3)) {
                         achievementToasts.append(AchievementToast(achievement: def))
                     }
+                    AudioEngine.shared.playAchievement()
                 }
             }
             game.pendingAchievementToasts.removeAll()
-            // Auto-dismiss after 4 seconds
             for toast in achievementToasts {
                 let toastId = toast.id
                 DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
@@ -118,8 +118,30 @@ struct MainView: View {
                 }
             }
         }
+        .onChange(of: game.activeEvent?.id) { oldId, newId in
+            if oldId == nil && newId != nil {
+                AudioEngine.shared.playEvent()
+            }
+        }
+        .onChange(of: game.settings.sfxVolume) { _, new in
+            AudioEngine.shared.updateVolumes(sfx: new, music: game.settings.musicVolume)
+        }
+        .onChange(of: game.settings.musicVolume) { _, new in
+            AudioEngine.shared.updateVolumes(sfx: game.settings.sfxVolume, music: new)
+        }
+        .onChange(of: game.phase) { _, _ in
+            withAnimation(.easeInOut(duration: 0.6)) {
+                phaseAnimating = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                phaseAnimating = false
+            }
+        }
         .overlay(alignment: .top) {
             AchievementToastOverlay(toasts: $achievementToasts)
+        }
+        .onAppear {
+            AudioEngine.shared.updateVolumes(sfx: game.settings.sfxVolume, music: game.settings.musicVolume)
         }
     }
 
@@ -131,17 +153,17 @@ struct MainView: View {
                 .font(.caption)
                 .fontWeight(.bold)
                 .tracking(3)
-                .foregroundStyle(.yellow.opacity(0.8))
+                .foregroundStyle(pColors.headerAccent)
 
             Text("Phase \(game.phase.rawValue): \(game.phase.title)")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(theme.text)
         }
         .padding(.vertical, 12)
         .frame(maxWidth: .infinity)
         .background(
             LinearGradient(
-                colors: [Color.black, Color(white: 0.1)],
+                colors: [theme.headerTop, theme.headerBottom],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -153,9 +175,9 @@ struct MainView: View {
     private var resourceBar: some View {
         VStack(spacing: 6) {
             HStack(spacing: 16) {
-                resourcePill(icon: "star.fill", label: "Greatness", value: game.greatness, color: .yellow)
-                resourcePill(icon: "dollarsign.circle.fill", label: "Cash", value: game.cash, color: .green)
-                resourcePill(icon: "eye.fill", label: "Attention", value: game.attention, color: .cyan)
+                resourcePill(icon: "star.fill", label: "Greatness", value: game.greatness, color: theme.greatnessColor)
+                resourcePill(icon: "dollarsign.circle.fill", label: "Cash", value: game.cash, color: theme.cashColor)
+                resourcePill(icon: "eye.fill", label: "Attention", value: game.attention, color: theme.attentionColor)
             }
             if game.phase.rawValue >= 2 {
                 HStack(spacing: 16) {
@@ -188,7 +210,7 @@ struct MainView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(Color(white: 0.08))
+        .background(theme.surface)
     }
 
     private func resourcePill(icon: String, label: String, value: Double, color: Color) -> some View {
@@ -199,7 +221,7 @@ struct MainView: View {
                     .foregroundStyle(color)
                 Text(label)
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(theme.textSecondary)
             }
             Text(Fmt.compact(value))
                 .font(.subheadline)
@@ -221,23 +243,26 @@ struct MainView: View {
         HStack {
             ForEach(visibleTabs, id: \.self) { tab in
                 Button {
-                    selectedTab = tab
+                    withAnimation(.spring(duration: 0.25, bounce: 0.2)) {
+                        selectedTab = tab
+                    }
                     Haptics.light()
                 } label: {
                     VStack(spacing: 2) {
                         Image(systemName: tab.icon)
                             .font(.title3)
+                            .symbolEffect(.bounce, value: selectedTab == tab)
                         Text(tab.rawValue)
                             .font(.caption2)
                     }
-                    .foregroundStyle(selectedTab == tab ? .orange : .secondary)
+                    .foregroundStyle(selectedTab == tab ? theme.accent : theme.textSecondary)
                     .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.plain)
             }
         }
         .padding(.vertical, 8)
-        .background(Color(white: 0.08))
+        .background(theme.tabBarBg)
     }
 }
 

@@ -62,6 +62,8 @@
 		A10000010000000000000035 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000035; };
 		A10000010000000000000036 /* TickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000036; };
 		A10000010000000000000037 /* EventRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000037; };
+		A10000010000000000000038 /* ThemeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000038; };
+		A10000010000000000000039 /* AudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000039; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -120,6 +122,8 @@
 		A20000010000000000000035 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A20000010000000000000036 /* TickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TickerView.swift; sourceTree = "<group>"; };
 		A20000010000000000000037 /* EventRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventRegistry.swift; sourceTree = "<group>"; };
+		A20000010000000000000038 /* ThemeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeEngine.swift; sourceTree = "<group>"; };
+		A20000010000000000000039 /* AudioEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioEngine.swift; sourceTree = "<group>"; };
 		A30000010000000000000001 /* GreatnessSimulator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GreatnessSimulator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -230,6 +234,8 @@
 			children = (
 				A20000010000000000000006 /* Formatting.swift */,
 				A2000001000000000000000A /* Haptics.swift */,
+				A20000010000000000000038 /* ThemeEngine.swift */,
+				A20000010000000000000039 /* AudioEngine.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -364,6 +370,8 @@
 				A10000010000000000000035 /* SettingsView.swift in Sources */,
 				A10000010000000000000036 /* TickerView.swift in Sources */,
 				A10000010000000000000037 /* EventRegistry.swift in Sources */,
+				A10000010000000000000038 /* ThemeEngine.swift in Sources */,
+				A10000010000000000000039 /* AudioEngine.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

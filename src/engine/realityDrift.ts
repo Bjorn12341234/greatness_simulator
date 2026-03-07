@@ -112,11 +112,14 @@ export function maybeSwapLabel(label: string, drift: number): string {
   if (drift < 40) return label
   const swapChance = (drift - 40) / 60 // 0-1 range from 40-100%
 
+  // Scale from 30% chance at drift 40 to 100% at drift 100
+  const chance = 0.3 + swapChance * 0.7
+
   for (const [original, replacement] of LABEL_SWAPS) {
-    if (label === original && Math.random() < swapChance * 0.3) {
+    if (label === original && Math.random() < chance) {
       return replacement
     }
-    if (label === replacement && Math.random() < swapChance * 0.3) {
+    if (label === replacement && Math.random() < chance) {
       return original
     }
   }

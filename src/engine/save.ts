@@ -22,10 +22,16 @@ export function loadGame(): GameState | null {
     const raw = localStorage.getItem(SAVE_KEY)
     if (!raw) return null
 
-    const saveFile: SaveFile = JSON.parse(raw)
+    const parsed = JSON.parse(raw)
+
+    // Validate save file structure
+    if (!isValidSaveFile(parsed)) {
+      console.warn('Invalid save file structure, ignoring')
+      return null
+    }
 
     // Run migrations if needed
-    const migrated = migrate(saveFile)
+    const migrated = migrate(parsed)
 
     return migrated.state
   } catch (e) {
@@ -54,13 +60,40 @@ export function exportSave(state: GameState): string {
 export function importSave(encoded: string): GameState | null {
   try {
     const json = atob(encoded)
-    const saveFile: SaveFile = JSON.parse(json)
-    const migrated = migrate(saveFile)
+    const parsed = JSON.parse(json)
+
+    if (!isValidSaveFile(parsed)) {
+      console.warn('Invalid imported save file structure')
+      return null
+    }
+
+    const migrated = migrate(parsed)
     return migrated.state
   } catch (e) {
     console.error('Failed to import save:', e)
     return null
   }
+}
+
+// ── Save Validation ──
+// Checks that a parsed object has the shape of a valid SaveFile before using it.
+
+function isValidSaveFile(obj: unknown): obj is SaveFile {
+  if (typeof obj !== 'object' || obj === null) return false
+  const save = obj as Record<string, unknown>
+
+  if (typeof save.version !== 'number') return false
+  if (typeof save.savedAt !== 'number') return false
+  if (typeof save.state !== 'object' || save.state === null) return false
+
+  const state = save.state as Record<string, unknown>
+
+  // Check critical fields that the game cannot function without
+  if (typeof state.phase !== 'number' || state.phase < 1 || state.phase > 5) return false
+  if (typeof state.greatness !== 'number') return false
+  if (typeof state.lastTickAt !== 'number') return false
+
+  return true
 }
 
 // ── Migration Framework ──

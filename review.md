@@ -174,3 +174,36 @@ Fair is fair — some things are genuinely better on iOS:
 **The iOS version is a correct port with an engagement problem.** The skeleton is right — all five phases, all the upgrade trees, all the balance math. But the flesh is thin. An idle game lives or dies on two things: (1) does tapping feel good, and (2) is there enough variety to sustain long sessions. iOS nails #1 with haptics but falls short on #2 due to the event gap and missing visual personality (Reality Drift, phase cinematics, themed events).
 
 The browser version feels like a complete game. The iOS version feels like a beta of the same game — mechanically sound but content-light and under-polished. The gap is closeable: porting events, adding Reality Drift visuals, and fixing the popup UX would bring it to parity. But right now, a player who finishes the browser version would find the iOS version noticeably less engaging, and a new player starting on iOS might not stick around past Phase 2.
+
+---
+
+## 9. TECH DEBT (Browser Codebase)
+
+### ~~TD-1: Save file validation~~ DONE
+**File:** `src/engine/save.ts`
+**Risk:** High — corrupted localStorage or stale save version silently breaks the game.
+**Fix:** Added `isValidSaveFile()` that checks `version`, `savedAt`, `state`, `phase`, `greatness`, and `lastTickAt` before accepting a save. Both `loadGame()` and `importSave()` now validate before proceeding.
+
+### ~~TD-2: Reality Drift label swap cap~~ DONE
+**File:** `src/engine/realityDrift.ts` — `maybeSwapLabel()`
+**Problem:** Swap chance was `swapChance * 0.3`, capping at 30% even at 100% drift. At max drift the UI should be fully unreliable.
+**Fix:** Changed to `0.3 + swapChance * 0.7` — scales from 30% at drift 40 to 100% at drift 100.
+
+### TD-3: Late-phase event drought
+**Files:** `src/data/phase4/events.ts` (12 events), `src/data/phase5/events.ts` (13 events)
+**Problem:** Phase 4 fires events every 30-60s, Phase 5 every 15-30s. With only 12-13 events each, players see repeats within minutes — right when the game should feel most novel.
+**Target:** ~30-40 events per phase. Priority categories:
+- Phase 4: More reality_glitch events (tie into drift visuals), space absurdity, terraforming crises
+- Phase 5: Cosmic existential events, probe encounters, star branding consequences, entropy/meaning collapse
+**Effort:** Content writing, no engine changes needed. Can be done incrementally.
+
+### TD-4: Monolithic tick() function
+**File:** `src/store/gameStore.ts` lines 178-305
+**Problem:** Single ~130-line function handles production, legitimacy, tariffs, contradictions, Nobel prizes, phase transitions, and event scheduling. Not broken, but one wrong edit cascades.
+**Plan:** Extract into sub-functions that the main `tick()` calls:
+- `tickProduction(state, dt)` → returns `{ greatness, cash, attention, gps }` updates
+- `tickLegitimacy(state, dt)` → returns `{ legitimacy }` update
+- `tickNobelPrize(state)` → returns Nobel-related updates (or null)
+- Event scheduling and phase transition checks stay in `tick()` (they're small and need `set()`)
+**Effort:** Pure refactor, no behavior changes. Move logic into `src/engine/tick.ts` helpers, import into store.
+**Constraint:** Each sub-function takes `GameState` and returns a partial update object — no access to `set()`/`get()`.

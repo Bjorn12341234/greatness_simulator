@@ -144,7 +144,7 @@ Fair is fair — some things are genuinely better on iOS:
 3. ~~**Reality Drift visual effects** — Label swaps, value jitter, UI corruption. This is the game's signature late-game mechanic~~ DONE
 
 ### Should-fix for engagement:
-4. **Cinematic phase transitions** — Multi-screen staggered text with audio, not a modal
+4. ~~**Cinematic phase transitions** — Multi-screen staggered text with audio, not a modal~~ DONE
 5. **Event modal polish** — Category color coding, backdrop blur, spring animations
 6. **Animated ticker** — Scrolling cable-news style instead of static list
 7. **Ending sequence** — Full cinematic treatment (the current browser ending is genuinely memorable)

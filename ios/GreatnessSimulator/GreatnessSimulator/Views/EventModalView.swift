@@ -6,6 +6,7 @@ struct EventModalView: View {
     let onDismiss: () -> Void
 
     @State private var appeared = false
+    @State private var buttonsEnabled = false
 
     var body: some View {
         ZStack {
@@ -27,6 +28,9 @@ struct EventModalView: View {
         .onAppear {
             withAnimation(.spring(duration: 0.4, bounce: 0.3)) {
                 appeared = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                buttonsEnabled = true
             }
         }
     }
@@ -122,6 +126,8 @@ struct EventModalView: View {
             )
         }
         .buttonStyle(.plain)
+        .disabled(!buttonsEnabled)
+        .opacity(buttonsEnabled ? 1 : 0.4)
     }
 
     private func effectsPreview(_ effects: [Effect]) -> some View {

@@ -12,6 +12,7 @@ enum CosmicSubTab: String, CaseIterable {
 struct CosmicView: View {
     @Environment(GameState.self) private var game
     @State private var selectedSubTab: CosmicSubTab = .overview
+    @Environment(\.driftSeed) private var driftSeed
 
     var body: some View {
         VStack(spacing: 0) {
@@ -50,6 +51,10 @@ struct CosmicView: View {
 
     private let cosmicAccent = Color(red: 0.6, green: 0.2, blue: 1.0) // #9933FF
 
+    private func driftHeader(_ label: String) -> String {
+        driftSwapLabel(label, drift: game.realityDrift, seed: driftSeed)
+    }
+
     // MARK: - Overview
 
     private var overviewTab: some View {
@@ -60,7 +65,7 @@ struct CosmicView: View {
                     HStack {
                         Image(systemName: "globe.americas.fill")
                             .foregroundStyle(cosmicAccent)
-                        Text("UNIVERSE CONVERSION")
+                        Text(driftHeader("UNIVERSE CONVERSION"))
                             .font(.headline)
                             .foregroundStyle(.white)
                         Spacer()
@@ -83,7 +88,7 @@ struct CosmicView: View {
                     HStack {
                         Image(systemName: "atom")
                             .foregroundStyle(.cyan)
-                        Text("COSMIC RESOURCES")
+                        Text(driftHeader("COSMIC RESOURCES"))
                             .font(.headline)
                             .foregroundStyle(.white)
                         Spacer()
@@ -106,7 +111,7 @@ struct CosmicView: View {
                     HStack {
                         Image(systemName: "waveform.path.ecg")
                             .foregroundStyle(driftColor)
-                        Text("REALITY DRIFT")
+                        Text(driftHeader("REALITY DRIFT"))
                             .font(.headline)
                             .foregroundStyle(.white)
                         Spacer()
@@ -127,13 +132,18 @@ struct CosmicView: View {
                 .padding()
                 .background(Color(white: 0.12))
                 .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(driftColor.opacity(game.realityDrift >= 40 ? 0.4 : 0), lineWidth: 1)
+                )
+                .driftFlicker(drift: game.realityDrift, seed: driftSeed)
 
                 // Quick status
                 VStack(spacing: 8) {
                     HStack {
                         Image(systemName: "checkmark.circle")
                             .foregroundStyle(.green)
-                        Text("SYSTEMS STATUS")
+                        Text(driftHeader("SYSTEMS STATUS"))
                             .font(.headline)
                             .foregroundStyle(.white)
                         Spacer()
@@ -164,7 +174,7 @@ struct CosmicView: View {
                     HStack {
                         Image(systemName: "paperplane.fill")
                             .foregroundStyle(.cyan)
-                        Text("MAGA REPLICATORS")
+                        Text(driftHeader("MAGA REPLICATORS"))
                             .font(.headline)
                             .foregroundStyle(.white)
                         Spacer()
@@ -212,7 +222,7 @@ struct CosmicView: View {
                     HStack {
                         Image(systemName: "sun.max.fill")
                             .foregroundStyle(.yellow)
-                        Text("SOLAR GREATNESS HARVESTERS")
+                        Text(driftHeader("SOLAR GREATNESS HARVESTERS"))
                             .font(.headline)
                             .foregroundStyle(.white)
                         Spacer()
@@ -254,7 +264,7 @@ struct CosmicView: View {
                     HStack {
                         Image(systemName: "star.circle.fill")
                             .foregroundStyle(.orange)
-                        Text("STAR BRANDING")
+                        Text(driftHeader("STAR BRANDING"))
                             .font(.headline)
                             .foregroundStyle(.white)
                         Spacer()
@@ -302,7 +312,7 @@ struct CosmicView: View {
                     HStack {
                         Image(systemName: "circle.dashed.inset.filled")
                             .foregroundStyle(.pink)
-                        Text("GOLDEN LEDGER SINGULARITY")
+                        Text(driftHeader("GOLDEN LEDGER SINGULARITY"))
                             .font(.headline)
                             .foregroundStyle(.white)
                         Spacer()
@@ -344,7 +354,7 @@ struct CosmicView: View {
                     HStack {
                         Image(systemName: "book.closed.fill")
                             .foregroundStyle(cosmicAccent)
-                        Text("NARRATIVE ARCHITECTURE")
+                        Text(driftHeader("NARRATIVE ARCHITECTURE"))
                             .font(.headline)
                             .foregroundStyle(.white)
                         Spacer()

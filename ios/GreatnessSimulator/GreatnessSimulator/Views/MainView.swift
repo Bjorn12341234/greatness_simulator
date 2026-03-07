@@ -40,6 +40,7 @@ struct MainView: View {
     @State private var selectedTab: GameTab = .click
     @State private var achievementToasts: [AchievementToast] = []
     @State private var phaseAnimating = false
+    @State private var driftSeed: Int = 0
 
     private var theme: GameTheme {
         resolveTheme(name: game.settings.theme)
@@ -47,6 +48,14 @@ struct MainView: View {
 
     private var pColors: PhaseColors {
         phaseColors[game.phase.rawValue] ?? phaseColors[1]!
+    }
+
+    private func driftLabel(_ label: String) -> String {
+        driftSwapLabel(label, drift: game.realityDrift, seed: driftSeed)
+    }
+
+    private func driftJitter(_ value: Double) -> Double {
+        driftJitterValue(value, drift: game.realityDrift, seed: driftSeed)
     }
 
     var body: some View {
@@ -77,6 +86,7 @@ struct MainView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .driftGlitch(drift: game.realityDrift, seed: driftSeed)
 
             tabBar
         }
@@ -97,6 +107,16 @@ struct MainView: View {
                 if game.universe.endingTriggered && !game.universe.endingComplete {
                     EndingView()
                 }
+            }
+        }
+        .overlay {
+            if game.realityDrift >= 40 && driftSeed % 17 == 0 {
+                Rectangle()
+                    .fill(driftSeed % 2 == 0 ? Color.red : Color.cyan)
+                    .opacity(0.03 * min(1, game.realityDrift / 100.0))
+                    .allowsHitTesting(false)
+                    .ignoresSafeArea()
+                    .animation(.easeInOut(duration: 0.05), value: driftSeed)
             }
         }
         .environment(\.theme, theme)
@@ -141,6 +161,15 @@ struct MainView: View {
         .overlay(alignment: .top) {
             AchievementToastOverlay(toasts: $achievementToasts)
         }
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 300_000_000)
+                if game.realityDrift >= 20 {
+                    driftSeed &+= 1
+                }
+            }
+        }
+        .environment(\.driftSeed, driftSeed)
         .onAppear {
             AudioEngine.shared.updateVolumes(sfx: game.settings.sfxVolume, music: game.settings.musicVolume)
         }
@@ -150,14 +179,16 @@ struct MainView: View {
 
     private var phaseHeader: some View {
         HStack {
-            Text("GREATNESS")
+            Text(driftLabel("GREATNESS"))
                 .font(.system(size: 16, weight: .black))
                 .tracking(2)
                 .foregroundStyle(.orange)
+                .animation(.easeInOut(duration: 0.15), value: driftSeed)
             Spacer()
-            Text("Phase \(game.phase.rawValue)")
+            Text(game.realityDrift >= 80 && driftSeed % 15 == 0 ? "Error \(game.phase.rawValue)" : "Phase \(game.phase.rawValue)")
                 .font(.system(size: 14, weight: .bold))
                 .foregroundStyle(.white.opacity(0.8))
+                .animation(.easeInOut(duration: 0.15), value: driftSeed)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
@@ -165,6 +196,7 @@ struct MainView: View {
         .background {
             Color(white: 0.13).ignoresSafeArea(edges: .top)
         }
+        .driftFlicker(drift: game.realityDrift, seed: driftSeed)
     }
 
     // MARK: - Resource Bar
@@ -172,42 +204,43 @@ struct MainView: View {
     private var resourceBar: some View {
         VStack(spacing: 6) {
             HStack(spacing: 16) {
-                resourcePill(icon: "star.fill", label: "Greatness", value: game.greatness, color: theme.greatnessColor)
-                resourcePill(icon: "dollarsign.circle.fill", label: "Cash", value: game.cash, color: theme.cashColor)
-                resourcePill(icon: "eye.fill", label: "Attention", value: game.attention, color: theme.attentionColor)
+                resourcePill(icon: "star.fill", label: "Greatness", value: driftJitter(game.greatness), color: theme.greatnessColor)
+                resourcePill(icon: "dollarsign.circle.fill", label: "Cash", value: driftJitter(game.cash), color: theme.cashColor)
+                resourcePill(icon: "eye.fill", label: "Attention", value: driftJitter(game.attention), color: theme.attentionColor)
             }
             if game.phase.rawValue >= 2 {
                 HStack(spacing: 16) {
-                    resourcePill(icon: "heart.fill", label: "Loyalty", value: game.loyalty, color: .purple)
-                    resourcePill(icon: "shield.fill", label: "Legitimacy", value: game.legitimacy, color: game.legitimacy > 50 ? .green : .red)
-                    resourcePill(icon: "eye.trianglebadge.exclamationmark.fill", label: "Control", value: game.control, color: .orange)
+                    resourcePill(icon: "heart.fill", label: "Loyalty", value: driftJitter(game.loyalty), color: .purple)
+                    resourcePill(icon: "shield.fill", label: "Legitimacy", value: driftJitter(game.legitimacy), color: game.legitimacy > 50 ? .green : .red)
+                    resourcePill(icon: "eye.trianglebadge.exclamationmark.fill", label: "Control", value: driftJitter(game.control), color: .orange)
                 }
             }
             if game.phase.rawValue >= 3 {
                 HStack(spacing: 16) {
-                    resourcePill(icon: "bolt.shield.fill", label: "War", value: game.warOutput, color: .red)
-                    resourcePill(icon: "exclamationmark.triangle.fill", label: "Fear", value: game.fear, color: .orange)
-                    resourcePill(icon: "medal.fill", label: "Nobel", value: game.nobelScore, color: .yellow)
+                    resourcePill(icon: "bolt.shield.fill", label: "War", value: driftJitter(game.warOutput), color: .red)
+                    resourcePill(icon: "exclamationmark.triangle.fill", label: "Fear", value: driftJitter(game.fear), color: .orange)
+                    resourcePill(icon: "medal.fill", label: "Nobel", value: driftJitter(game.nobelScore), color: .yellow)
                 }
             }
             if game.phase.rawValue >= 4 {
                 HStack(spacing: 16) {
-                    resourcePill(icon: "flame.fill", label: "Rocket", value: game.rocketMass, color: .orange)
-                    resourcePill(icon: "gearshape.2.fill", label: "Orbital", value: game.orbitalIndustry, color: .cyan)
-                    resourcePill(icon: "hammer.fill", label: "Mining", value: game.miningOutput, color: .yellow)
+                    resourcePill(icon: "flame.fill", label: "Rocket", value: driftJitter(game.rocketMass), color: .orange)
+                    resourcePill(icon: "gearshape.2.fill", label: "Orbital", value: driftJitter(game.orbitalIndustry), color: .cyan)
+                    resourcePill(icon: "hammer.fill", label: "Mining", value: driftJitter(game.miningOutput), color: .yellow)
                 }
             }
             if game.phase.rawValue >= 5 {
                 HStack(spacing: 16) {
-                    resourcePill(icon: "paperplane.fill", label: "Probes", value: game.probesLaunched, color: .cyan)
-                    resourcePill(icon: "atom", label: "GU", value: game.greatnessUnits, color: Color(red: 0.6, green: 0.2, blue: 1.0))
-                    resourcePill(icon: "waveform.path.ecg", label: "Drift", value: game.realityDrift, color: game.realityDrift > 60 ? .red : .yellow)
+                    resourcePill(icon: "paperplane.fill", label: "Probes", value: driftJitter(game.probesLaunched), color: .cyan)
+                    resourcePill(icon: "atom", label: "GU", value: driftJitter(game.greatnessUnits), color: Color(red: 0.6, green: 0.2, blue: 1.0))
+                    resourcePill(icon: "waveform.path.ecg", label: "Drift", value: driftJitter(game.realityDrift), color: game.realityDrift > 60 ? .red : .yellow)
                 }
             }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 4)
         .background(theme.surface)
+        .driftFlicker(drift: game.realityDrift, seed: driftSeed)
     }
 
     private func resourcePill(icon: String, label: String, value: Double, color: Color) -> some View {
@@ -244,8 +277,9 @@ struct MainView: View {
                         Image(systemName: tab.icon)
                             .font(.callout)
                             .symbolEffect(.bounce, value: selectedTab == tab)
-                        Text(tab.rawValue)
+                        Text(driftLabel(tab.rawValue))
                             .font(.system(size: 9))
+                            .animation(.easeInOut(duration: 0.15), value: driftSeed)
                     }
                     .foregroundStyle(selectedTab == tab ? theme.accent : theme.textSecondary)
                     .frame(maxWidth: .infinity)
